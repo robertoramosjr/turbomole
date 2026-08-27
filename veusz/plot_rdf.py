@@ -17,7 +17,13 @@ Usage:
 """
 
 import argparse
+import os
+
 import numpy as np
+
+if not os.environ.get("DISPLAY"):
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
 import veusz.embed as veusz
 
 
@@ -54,3 +60,48 @@ def add_rdf_panel(g, name, dataset_name, title, color, letter, ymax):
     g.Set("title_label/alignHorz", "centre")
 
     g.Add("label", name="letter_label", label=f"{letter})")
+
+    g.To("..")
+
+
+def read_header_names(path):
+    with open(path, "r") as f:
+        first = f.readline().strip()
+    return first[len("descriptor"):].strip().split(",")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Plot an N-panel grid of RDFs in Veusz.")
+    parser.add_argument("--data", required=True, help="Path to rdf_dataset.dat")
+    parser.add_argument("--output", default="rdf_figure", help="Output filename prefix")
+    parser.add_argument(
+        "--panel", action="append", nargs=4, required=True,
+        metavar=("DATASET", "TITLE", "COLOR", "LETTER"),
+        help="Add a panel: dataset column name, title, line color, panel letter "
+             "(may be repeated, one --panel per RDF curve)",
+    )
+    args = parser.parse_args()
+
+    names = read_header_names(args.data)
+    raw = np.loadtxt(args.data, skiprows=1)
+
+    g = veusz.Embedded("rdf_figure", hidden=True)
+
+    g.To(g.Add("page", name="page1"))
+    g.To(g.Add("grid", name="grid1", columns=2))
+
+    g.ImportFile(args.data, "", linked=True)
+
+    for dataset_name, title, color, letter in args.panel:
+        col = names.index(dataset_name)
+        ymax = compute_ymax(raw[:, col])
+        add_rdf_panel(g, f"graph_{dataset_name}", dataset_name, title, color, letter, ymax)
+
+    g.Save(f"{args.output}.vsz")
+    g.Export(f"{args.output}.pdf")
+    print(f"Saved -> {args.output}.vsz and {args.output}.pdf")
+    g.Close()
+
+
+if __name__ == "__main__":
+    main()

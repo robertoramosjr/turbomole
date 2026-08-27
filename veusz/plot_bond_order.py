@@ -13,6 +13,11 @@ Usage:
 
 import argparse
 import csv
+import os
+
+if not os.environ.get("DISPLAY"):
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
 import veusz.embed as veusz
 
 

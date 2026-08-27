@@ -14,6 +14,11 @@ Usage:
 """
 
 import argparse
+import os
+
+if not os.environ.get("DISPLAY"):
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
 import veusz.embed as veusz
 
 
@@ -88,7 +93,8 @@ def main():
     add_multiline_graph(
         g, "graph_jdos", "JDOS (TD-DFT, broadened)",
         [("jdos_intensity", "Broadened osc. strength", "black")],
-        "Energy (eV)", "Intensity (arb. units)", 0, 10
+        "Energy (eV)", "Intensity (arb. units)", 0, 10,
+        xdata="jdos_energy_eV"
     )
 
     add_multiline_graph(

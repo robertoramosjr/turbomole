@@ -12,6 +12,11 @@ Usage:
 """
 
 import argparse
+import os
+
+if not os.environ.get("DISPLAY"):
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
 import veusz.embed as veusz
 
 
@@ -27,14 +32,14 @@ def main():
     page = g.Root.Add("page", name="page1")
     graph = page.Add("graph", name="graph1")
 
-    g.To(graph)
+    g.To(graph.path)
     g.ImportFile(args.data, "", linked=True)
 
-    xaxis = graph.Add("axis", name="x")
-    xaxis.label.val = "Atom index"
-
-    yaxis = graph.Add("axis", name="y", direction="vertical")
-    yaxis.label.val = "Net Bader charge (e)"
+    # Set properties on the graph's default x/y axes rather than adding new
+    # ones -- graph.Add("axis", ...) creates a duplicate ghost axis on top
+    # of the auto-created default, doubling up the tick labels.
+    graph.x.label.val = "Atom index"
+    graph.y.label.val = "Net Bader charge (e)"
 
     bar = graph.Add("bar", name="bar1")
     bar.lengths.val = ["net_charge"]

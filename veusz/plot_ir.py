@@ -15,7 +15,13 @@ Usage:
 """
 
 import argparse
+import os
+
 import numpy as np
+
+if not os.environ.get("DISPLAY"):
+    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
 import veusz.embed as veusz
 
 
@@ -63,8 +69,8 @@ def main():
     g.ImportFile(broadened_path, "", linked=True)
 
     g.Set("x/label", "Wavenumber (cm-1)")
-    g.Set("x/min", grid.min())
-    g.Set("x/max", grid.max())
+    g.Set("x/min", float(grid.min()))
+    g.Set("x/max", float(grid.max()))
 
     g.Set("y/label", "IR intensity (km/mol)")
     g.Set("y/min", 0)
@@ -81,8 +87,8 @@ def main():
     g.Add("bar", name="bar_sticks")
     g.Set("bar_sticks/lengths", ["ir_intensity_kmmol"])
     g.Set("bar_sticks/posn", "wavenumber_cm1")
-    g.Set("bar_sticks/BarFill/color", "red")
-    g.Set("bar_sticks/key", "Stick spectrum")
+    g.Set("bar_sticks/BarFill/fills", [("solid", "red", False)])
+    g.Set("bar_sticks/keys", ["Stick spectrum"])
 
     g.Add("key", name="key1")
 
