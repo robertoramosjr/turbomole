@@ -1,0 +1,8 @@
+numpy>=1.24
+
+# Usado apenas pelos scripts em veusz/ (Estagio 3 - geracao de figuras).
+# O pacote inclui o modulo de embedding (veusz.embed); em algumas
+# distribuicoes Linux e mais confiavel instalar via gerenciador de pacotes
+# do sistema (ex.: apt install veusz) do que via pip, por causa da
+# dependencia de Qt/PyQt. Ver README.md, secao "Instalacao".
+veusz>=3.6
