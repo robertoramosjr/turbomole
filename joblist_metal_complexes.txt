@@ -1,0 +1,9 @@
+/home/rramos/work_turbomole/Cu-dupleto/hse06_m4_d3
+/home/rramos/work_turbomole/Cu-dupleto/pbe_m4_d3
+/home/rramos/work_turbomole/Cu-dupleto/pbe0_m4_d3
+/home/rramos/work_turbomole/Ni-singleto/hse06_m4_d3
+/home/rramos/work_turbomole/Ni-singleto/pbe_m4_d3
+/home/rramos/work_turbomole/Ni-singleto/pbe0_m4_d3
+/home/rramos/work_turbomole/Zn-singleto/hse06_m4_d3
+/home/rramos/work_turbomole/Zn-singleto/pbe_m4_d3
+/home/rramos/work_turbomole/Zn-singleto/pbe0_m4_d3
