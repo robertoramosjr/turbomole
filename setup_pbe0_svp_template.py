@@ -30,10 +30,19 @@ leftover data group?" prompts that didn't match this molecule's control
 files; this script uses pattern-matching pexpect navigation instead of
 counting blank lines, which is robust to that).
 
+Single-point on an already-optimized geometry (no $optimize/$statpt
+block), so there is no force/gradient-convergence parameter here -- see
+setup_metal_complex_template.py or setup_r2scan3c_template.py for that.
+
 Usage:
     python ~/work_turbomole/scripts/setup_pbe0_svp_template.py \
         --xyz r2scan3c_optimized.xyz --charge -1 --nstates 10 \
         --output-dir template_dir
+
+    # sweeping SCF convergence/grid for benchmarking:
+    python ~/work_turbomole/scripts/setup_pbe0_svp_template.py \
+        --xyz r2scan3c_optimized.xyz --charge -1 --scfconv 8 --grid m5 \
+        --output-dir template_dir_m5
 """
 
 import argparse
@@ -42,7 +51,34 @@ import subprocess
 import sys
 import time
 
+
+def build_arg_parser():
+    parser = argparse.ArgumentParser(
+        description="Build a reusable PBE0/def2-SVP RI-K + TD-DFT "
+                    "Turbomole template for one protonation state.")
+    parser.add_argument("--xyz", required=True,
+                         help="Representative .xyz for this state "
+                              "(geometry itself does not matter for the "
+                              "template -- only composition/charge do)")
+    parser.add_argument("--charge", type=int, required=True)
+    parser.add_argument("--nstates", type=int, default=10,
+                         help="Number of TD-DFT singlet roots [default: 10]")
+    parser.add_argument("--scfconv", type=int, default=7,
+                         help="SCF energy convergence criterion, as the N "
+                              "in $scfconv N (10^-N Hartree) [default: 7, "
+                              "matches define's own default -- unlike the "
+                              "HSE06/metal-complex production templates, "
+                              "this script did not previously override it].")
+    parser.add_argument("--grid", default="m4",
+                         help="DFT numerical integration grid size, as "
+                              "passed to `grid <value>` in define's dft "
+                              "menu (e.g. m3/m4/m5) [default: m4].")
+    parser.add_argument("--output-dir", required=True)
+    return parser
+
+
 TDDFT_BLOCK = (
+    "$scfconv {scfconv}\n"
     "$scfinstab rpas\n"
     "$soes\n"
     " a           {nstates}\n"
@@ -60,7 +96,7 @@ def advance_to(child, patterns, max_steps=25, step_wait=3):
     raise RuntimeError(f"define: did not reach any of {patterns}")
 
 
-def run_define(work_dir, charge, log_path):
+def run_define(work_dir, charge, grid, log_path):
     import pexpect
     child = pexpect.spawn("define", cwd=work_dir, timeout=20, encoding="utf-8")
     with open(log_path, "w") as logf:
@@ -83,7 +119,7 @@ def run_define(work_dir, charge, log_path):
         send("")
         send("dft")
         send("func pbe0")
-        send("grid m4")
+        send(f"grid {grid}")
         send("on")
         send("")
         send("ri")
@@ -108,18 +144,7 @@ def run_define(work_dir, charge, log_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Build a reusable PBE0/def2-SVP RI-K + TD-DFT "
-                    "Turbomole template for one protonation state.")
-    parser.add_argument("--xyz", required=True,
-                         help="Representative .xyz for this state "
-                              "(geometry itself does not matter for the "
-                              "template -- only composition/charge do)")
-    parser.add_argument("--charge", type=int, required=True)
-    parser.add_argument("--nstates", type=int, default=10,
-                         help="Number of TD-DFT singlet roots [default: 10]")
-    parser.add_argument("--output-dir", required=True)
-    args = parser.parse_args()
+    args = build_arg_parser().parse_args()
 
     try:
         import pexpect  # noqa: F401
@@ -139,7 +164,7 @@ def main():
     )
 
     log_path = os.path.join(args.output_dir, "define_session.log")
-    run_define(args.output_dir, args.charge, log_path)
+    run_define(args.output_dir, args.charge, args.grid, log_path)
 
     control_path = os.path.join(args.output_dir, "control")
     if not os.path.isfile(control_path):
@@ -152,13 +177,18 @@ def main():
             f"control does not show the expected pbe0/RI-K setup -- "
             f"check {log_path} and {control_path} by hand.")
 
-    text = text.replace("$end", TDDFT_BLOCK.format(nstates=args.nstates) + "$end", 1)
+    text = text.replace(
+        "$end",
+        TDDFT_BLOCK.format(nstates=args.nstates, scfconv=args.scfconv) + "$end",
+        1,
+    )
     with open(control_path, "w") as f:
         f.write(text)
 
     print(f"Template ready in {args.output_dir}/ (control, basis, auxbasis, mos, "
-          f"coord; charge={args.charge}, pbe0/def2-SVP, RI-J+RI-K, grid m4, "
-          f"TD-DFT {args.nstates} singlet states).")
+          f"coord; charge={args.charge}, pbe0/def2-SVP, RI-J+RI-K, grid "
+          f"{args.grid}, scfconv {args.scfconv}, TD-DFT {args.nstates} "
+          f"singlet states).")
 
 
 if __name__ == "__main__":

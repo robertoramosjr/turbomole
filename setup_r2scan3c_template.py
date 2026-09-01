@@ -20,9 +20,21 @@ it, define silently keeps whatever generic default basis -- def-SV(P)
 here -- was auto-assigned before the dft menu is touched, which is the
 wrong, much smaller basis for this method).
 
+This DOES optimize geometry (jobex, driven separately by the job
+array script -- see job_r2scan3c_optimize.sh), with a deliberately
+LOOSENED $statpt (Layer A screening thresholds, not Paper 1's tight
+production ones -- see that job script's docstring for why a hard
+cycle cap plus a loose gradient threshold is the practical stopping
+criterion for this molecule).
+
 Usage:
     python ~/work_turbomole/scripts/setup_r2scan3c_template.py \
         --xyz structure.xyz --charge -1 --output-dir template_dir
+
+    # sweeping SCF convergence/grid/force-convergence for benchmarking:
+    python ~/work_turbomole/scripts/setup_r2scan3c_template.py \
+        --xyz structure.xyz --charge -1 --scfconv 8 --grid m5 \
+        --thrmaxgrad 5.0d-4 --output-dir template_dir_tight
 """
 
 import argparse
@@ -30,6 +42,38 @@ import os
 import subprocess
 import sys
 import time
+
+
+def build_arg_parser():
+    parser = argparse.ArgumentParser(
+        description="Build a reusable r2SCAN-3c/def2-mTZVP Turbomole "
+                    "template (control+basis+mos) for one protonation "
+                    "state via a scripted `define` session.")
+    parser.add_argument("--xyz", required=True, help="Representative .xyz for this state")
+    parser.add_argument("--charge", type=int, required=True,
+                         help="Total molecular charge for this protonation state")
+    parser.add_argument("--scfconv", type=int, default=7,
+                         help="SCF energy convergence criterion, as the N "
+                              "in $scfconv N (10^-N Hartree) [default: 7, "
+                              "matches define's own default -- this script "
+                              "did not previously override it].")
+    parser.add_argument("--grid", default="m4",
+                         help="DFT numerical integration grid size, as "
+                              "passed to `grid <value>` in define's dft "
+                              "menu (e.g. m3/m4/m5) [default: m4].")
+    parser.add_argument("--thrmaxgrad", default="1.0d-3",
+                         help="Geometry optimization force-convergence "
+                              "criterion: $statpt's thrmaxgrad (max "
+                              "gradient component, Hartree/bohr) "
+                              "[default: 1.0d-3, Layer A's loosened "
+                              "screening value -- Paper 1 production uses "
+                              "5.0d-4, see setup_metal_complex_template.py]. "
+                              "The other four loosened $statpt thresholds "
+                              "stay fixed.")
+    parser.add_argument("--output-dir", required=True,
+                         help="Folder to create with the finished template")
+    return parser
+
 
 DEFINE_STEPS = [
     "",                      # hit return: skip reading defaults from another control
@@ -45,20 +89,21 @@ DEFINE_STEPS = [
     "",                      # accept default MO occupation
     "dft",                   # enter DFT menu
     "func r2scan-3c",        # composite method (drives auto D4 + gCP at runtime)
-    "grid m4",               # match Paper 1's production grid choice
+    None,                    # placeholder for "grid <value>", filled in at call time
     "on",                    # switch DFT on
     "",                      # leave DFT menu
     "*",                     # end define session, write control
 ]
 
 
-def run_define(work_dir, charge, log_path):
+def run_define(work_dir, charge, grid, log_path):
     import pexpect
-    steps = [charge if s is None else s for s in DEFINE_STEPS]
+    steps = [charge if s is None and i == 9 else s for i, s in enumerate(DEFINE_STEPS)]
+    steps = [f"grid {grid}" if s is None else s for s in steps]
     child = pexpect.spawn("define", cwd=work_dir, timeout=20, encoding="utf-8")
     with open(log_path, "w") as logf:
         child.logfile = logf
-        for i, step in enumerate(steps):
+        for step in steps:
             wait = 2.5 if "b all" in step else 0.8
             child.sendline(step)
             time.sleep(wait)
@@ -69,16 +114,7 @@ def run_define(work_dir, charge, log_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Build a reusable r2SCAN-3c/def2-mTZVP Turbomole "
-                    "template (control+basis+mos) for one protonation "
-                    "state via a scripted `define` session.")
-    parser.add_argument("--xyz", required=True, help="Representative .xyz for this state")
-    parser.add_argument("--charge", type=int, required=True,
-                         help="Total molecular charge for this protonation state")
-    parser.add_argument("--output-dir", required=True,
-                         help="Folder to create with the finished template")
-    args = parser.parse_args()
+    args = build_arg_parser().parse_args()
 
     try:
         import pexpect  # noqa: F401
@@ -99,7 +135,7 @@ def main():
     )
 
     log_path = os.path.join(args.output_dir, "define_session.log")
-    run_define(args.output_dir, str(args.charge), log_path)
+    run_define(args.output_dir, str(args.charge), args.grid, log_path)
 
     control_path = os.path.join(args.output_dir, "control")
     if not os.path.isfile(control_path):
@@ -114,11 +150,11 @@ def main():
             f"setup -- check {log_path} and {control_path} by hand.")
 
     # Enable RI-J (define's default session here doesn't turn it on, and
-    # ridft refuses to run without it) and add loosened Layer-A geometry
-    # convergence thresholds (not Paper 1's production thresholds --
-    # see filter_boltzmann_population.py / job array script docstrings
-    # for why a screening stage does not need production-tight geometry
-    # convergence).
+    # ridft refuses to run without it), set the SCF convergence override,
+    # and add loosened Layer-A geometry convergence thresholds (not Paper
+    # 1's production thresholds -- see filter_boltzmann_population.py /
+    # job array script docstrings for why a screening stage does not need
+    # production-tight geometry convergence).
     with open(control_path) as f:
         text = f.read()
     text = text.replace(
@@ -126,10 +162,11 @@ def main():
         "$statpt\n"
         "   threchange   1.0d-6\n"
         "   thrmaxdispl  1.0d-3\n"
-        "   thrmaxgrad   1.0d-3\n"
+        f"   thrmaxgrad   {args.thrmaxgrad}\n"
         "   thrrmsdispl  5.0d-4\n"
         "   thrrmsgrad   5.0d-4\n"
         "$rij\n"
+        f"$scfconv {args.scfconv}\n"
         "$end",
         1,
     )
@@ -138,8 +175,9 @@ def main():
 
     print(f"Template ready in {args.output_dir}/ "
           f"(control, basis, mos, coord; charge={args.charge}, "
-          f"r2scan-3c/def2-mTZVP, grid m4, RI-J on, "
-          f"loosened Layer-A $statpt thresholds).")
+          f"r2scan-3c/def2-mTZVP, grid {args.grid}, RI-J on, scfconv "
+          f"{args.scfconv}, thrmaxgrad {args.thrmaxgrad}, loosened Layer-A "
+          f"$statpt thresholds otherwise).")
 
 
 if __name__ == "__main__":

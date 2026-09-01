@@ -519,10 +519,76 @@ abertura do gap na região de fronteira — e alimentar o exciton binding
 do Estágio 4 (`--gwbse`).
 
 **Pré-condição:** uma rodada GW-BSE/TDA do Turbomole que produza
-`qpenergies.dat` (correções de quasipartícula G0W0) — o procedimento
-exato dessa rodada (módulo GW do Turbomole) ainda não está
-documentado neste repositório; assuma que `qpenergies.dat` e o
-`escf_bse.out` correspondente já existem antes de seguir daqui.
+`qpenergies.dat` (correções de quasipartícula G0W0) e o `escf_bse.out`
+correspondente. O procedimento exato foi sondado interativamente no
+`define` (não havia nenhum exemplo desse fluxo no repositório antes
+disso) e está automatizado em `setup_gw_bse_template.py`.
+
+**9.1. Gerar os diretórios `gw/` e `bse/`**
+
+```bash
+python ../scripts/setup_gw_bse_template.py \
+    --xyz molecula.xyz --charge 0 --functional hse06 \
+    --nstates 10 --output-dir gwbse
+```
+
+`--functional` aceita `hse06`/`pbe`/`pbe0` (mesma lógica de
+RI/dispersão/grid dos outros scripts de setup); `--nstates` é o número
+de estados excitônicos singleto calculados no BSE; `--no-fullspec`
+restringe o GW à região próxima do gap (mais barato, mas insuficiente
+para a DOS completa desta seção); `--scfconv`/`--grid` seguem o mesmo
+padrão dos demais scripts de setup (argumentos no topo do arquivo, via
+`build_arg_parser()`).
+
+**Importante — são duas rodadas `escf` separadas, com `control`s
+diferentes** (`gw/control` tem `$rigw`; `bse/control` tem `$bse`, sem
+`$rigw`) — não existe uma única rodada que faça as duas coisas juntas.
+
+**9.2. Rodar o GW primeiro** (produz `qpenergies.dat`):
+
+```bash
+cd gwbse/gw
+ridft > ridft.out
+escf > escf.out
+```
+
+**9.3. Copiar `qpenergies.dat` para `bse/` e rodar o BSE**:
+
+```bash
+cp qpenergies.dat ../bse/
+cd ../bse
+ridft > ridft.out
+escf > escf_bse.out
+```
+
+O BSE só usa a correção GW se `qpenergies.dat` já estiver na pasta
+*antes* do `escf` — copie primeiro, sempre.
+
+**Checagem de sanidade** (confirma que o BSE realmente leu a correção
+GW, e não caiu de volta pro TD-DFT puro): grep `escf_bse.out` por
+"Dominant contributions" e compare as energias de orbital citadas ali
+com as colunas G0W0 (não Kohn-Sham) de `qpenergies.dat` — devem bater.
+Se baterem com o valor Kohn-Sham puro em vez do G0W0, algo deu errado
+(ex.: `qpenergies.dat` não foi copiado antes do `escf`).
+
+**Gotchas do `define` encontrados durante a sondagem** (documentados
+com mais detalhe no docstring de `setup_gw_bse_template.py`):
+- No submenu `gw` (dentro do `GENERAL MENU`), o comando `rigw` sozinho
+  **não liga nada** — redesenha o mesmo menu em "off" silenciosamente,
+  sem erro. Precisa ser `rigw on` explicitamente. Já o `bse` (dentro do
+  menu `ex`) liga normalmente como toggle simples — a mesma convenção
+  on/off não vale para todo submenu do `define`.
+- `fullspec` (dentro do submenu do `rigw`) é o que dá QP de **todos**
+  os orbitais, não só do HOMO/LUMO — sem isso a DOS completa desta
+  seção não é possível, só o gap.
+
+**Ainda não testado**: `pbe0` como funcional de referência junto com
+RI-GW (só `hse06`/`pbe` foram validados de ponta a ponta), sistemas de
+camada aberta (UHF), e qualquer molécula além de uma água de 3 átomos
+usada para a sondagem — meça custo/escala numa molécula pequena antes
+de rodar em produção.
+
+**9.4. Extrair e plotar a DOS comparativa** (KS vs. G0W0):
 
 ```bash
 python ../scripts/parse_qpenergies_dos.py --qpenergies qpenergies.dat \

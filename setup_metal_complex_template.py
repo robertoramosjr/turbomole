@@ -40,6 +40,12 @@ Usage:
     python ~/work_turbomole/scripts/setup_metal_complex_template.py \
         --coord coord --charge 0 --functional hse06 \
         --nstates 30 --output-dir hse06_m4_d3
+
+    # sweeping SCF/grid/force-convergence for benchmarking:
+    python ~/work_turbomole/scripts/setup_metal_complex_template.py \
+        --coord coord --charge 0 --functional pbe0 \
+        --scfconv 7 --grid m5 --thrmaxgrad 1.0d-3 \
+        --output-dir pbe0_m5_d3_loose
 """
 
 import argparse
@@ -49,10 +55,44 @@ import shutil
 import sys
 import time
 
+
+def build_arg_parser():
+    parser = argparse.ArgumentParser(
+        description="Build a production Turbomole template (control/basis/"
+                    "auxbasis/mos) for one metal-complex system/functional.")
+    parser.add_argument("--coord", required=True,
+                         help="Path to an existing Turbomole 'coord' file "
+                              "for this system.")
+    parser.add_argument("--charge", type=int, required=True)
+    parser.add_argument("--functional", required=True,
+                         choices=["hse06", "pbe", "pbe0"])
+    parser.add_argument("--nstates", type=int, default=30,
+                         help="Number of TD-DFT singlet roots (1..N) "
+                              "[default: 30]")
+    parser.add_argument("--scfconv", type=int, default=8,
+                         help="SCF energy convergence criterion, as the N "
+                              "in $scfconv N (10^-N Hartree) [default: 8, "
+                              "matches Paper 1 production].")
+    parser.add_argument("--grid", default="m4",
+                         help="DFT numerical integration grid size, as "
+                              "passed to `grid <value>` in define's dft "
+                              "menu (e.g. m3/m4/m5) [default: m4].")
+    parser.add_argument("--thrmaxgrad", default="5.0d-4",
+                         help="Geometry optimization force-convergence "
+                              "criterion: $statpt's thrmaxgrad (max "
+                              "gradient component, Hartree/bohr) "
+                              "[default: 5.0d-4, Paper 1 production value]. "
+                              "The other four $statpt thresholds "
+                              "(threchange, thrrmsgrad, thrmaxdispl, "
+                              "thrrmsdispl) stay fixed at Paper 1's values.")
+    parser.add_argument("--output-dir", required=True)
+    return parser
+
+
 STATPT_BLOCK = (
     "$statpt\n"
     "   threchange   1.0d-7\n"
-    "   thrmaxgrad   5.0d-4\n"
+    "   thrmaxgrad   {thrmaxgrad}\n"
     "   thrrmsgrad   2.0d-4\n"
     "   thrmaxdispl  5.0d-4\n"
     "   thrrmsdispl  2.0d-4\n"
@@ -60,7 +100,7 @@ STATPT_BLOCK = (
 
 COMMON_EXTRA_BLOCK = (
     "$disp3 bj\n"
-    "$scfconv 8\n"
+    "$scfconv {scfconv}\n"
     "$denconv 1d-7\n"
     "$scfiterlimit 150\n"
     "$scfinstab rpas\n"
@@ -84,7 +124,7 @@ def advance_to(child, patterns, max_steps=30, step_wait=3):
     raise RuntimeError(f"define: did not reach any of {patterns}")
 
 
-def run_define(work_dir, charge, functional, log_path):
+def run_define(work_dir, charge, functional, grid, log_path):
     import pexpect
     child = pexpect.spawn("define", cwd=work_dir, timeout=25, encoding="utf-8")
     with open(log_path, "w") as logf:
@@ -110,7 +150,7 @@ def run_define(work_dir, charge, functional, log_path):
 
         send("dft", wait=1.0)
         send(f"func {functional}", wait=1.0)
-        send("grid m4", wait=1.0)
+        send(f"grid {grid}", wait=1.0)
         send("on", wait=1.5)
         send("", wait=1.0)
 
@@ -139,20 +179,7 @@ def run_define(work_dir, charge, functional, log_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Build a production Turbomole template (control/basis/"
-                    "auxbasis/mos) for one metal-complex system/functional.")
-    parser.add_argument("--coord", required=True,
-                         help="Path to an existing Turbomole 'coord' file "
-                              "for this system.")
-    parser.add_argument("--charge", type=int, required=True)
-    parser.add_argument("--functional", required=True,
-                         choices=["hse06", "pbe", "pbe0"])
-    parser.add_argument("--nstates", type=int, default=30,
-                         help="Number of TD-DFT singlet roots (1..N) "
-                              "[default: 30]")
-    parser.add_argument("--output-dir", required=True)
-    args = parser.parse_args()
+    args = build_arg_parser().parse_args()
 
     try:
         import pexpect  # noqa: F401
@@ -167,7 +194,7 @@ def main():
     shutil.copyfile(args.coord, coord_dest)
 
     log_path = os.path.join(args.output_dir, "define_session.log")
-    run_define(args.output_dir, args.charge, args.functional, log_path)
+    run_define(args.output_dir, args.charge, args.functional, args.grid, log_path)
 
     control_path = os.path.join(args.output_dir, "control")
     if not os.path.isfile(control_path):
@@ -185,19 +212,25 @@ def main():
             f"{control_path} by hand.")
 
     # define's own default $scfconv would otherwise duplicate the
-    # $scfconv 8 added below (matches Paper 1 production convergence).
+    # $scfconv override added below.
     text = re.sub(r"^\$scfconv\s+\d+\s*\n", "", text, count=1, flags=re.MULTILINE)
     # Same for its default $scfiterlimit (30).
     text = re.sub(r"^\$scfiterlimit\s+\d+\s*\n", "", text, count=1, flags=re.MULTILINE)
 
     extra = {"hse06": HSE06_EXTRA, "pbe": PBE_EXTRA, "pbe0": PBE0_EXTRA}[args.functional]
-    text = text.replace("$end", extra.format(nstates=args.nstates) + "$end", 1)
+    text = text.replace(
+        "$end",
+        extra.format(nstates=args.nstates, scfconv=args.scfconv,
+                     thrmaxgrad=args.thrmaxgrad) + "$end",
+        1,
+    )
     with open(control_path, "w") as f:
         f.write(text)
 
     print(f"Template ready in {args.output_dir}/ (control, basis, auxbasis, "
           f"mos/alpha+beta, coord; charge={args.charge}, "
-          f"{args.functional}-D3(BJ)/def2-TZVP, grid m4, TD-DFT states "
+          f"{args.functional}-D3(BJ)/def2-TZVP, grid {args.grid}, scfconv "
+          f"{args.scfconv}, thrmaxgrad {args.thrmaxgrad}, TD-DFT states "
           f"1-{args.nstates}).")
 
 

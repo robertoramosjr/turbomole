@@ -20,28 +20,57 @@ basis surprises expected here.
 
 This builds a template for property calculations (aoforce Hessian +
 TD-DFT) on top of an already-optimized geometry (Layer A's r2SCAN-3c
-structures) -- it does NOT reoptimize geometry at this level. Full
-production reoptimization (matching Paper 1's tight $statpt thresholds)
-is reserved for Estagio 6's final top-N selection, not this labeling
-step.
+structures) -- it does NOT reoptimize geometry at this level (no
+$optimize/$statpt block), so there is no force/gradient-convergence
+parameter here -- see setup_metal_complex_template.py or
+setup_r2scan3c_template.py for that. Full production reoptimization
+(matching Paper 1's tight $statpt thresholds) is reserved for
+Estagio 6's final top-N selection, not this labeling step.
 
 Usage:
     python ~/work_turbomole/scripts/setup_hse06_tzvp_template.py \
         --xyz structure.xyz --charge -1 --nstates 60 \
         --output-dir template_dir
+
+    # sweeping SCF convergence/grid for benchmarking:
+    python ~/work_turbomole/scripts/setup_hse06_tzvp_template.py \
+        --xyz structure.xyz --charge -1 --scfconv 7 --grid m5 \
+        --output-dir template_dir_m5
 """
 
 import argparse
 import os
+import re
 import subprocess
 import sys
 import time
+
+
+def build_arg_parser():
+    parser = argparse.ArgumentParser(
+        description="Build a reusable HSE06-D3(BJ)/def2-TZVP Turbomole "
+                    "template (production level) for one protonation state.")
+    parser.add_argument("--xyz", required=True)
+    parser.add_argument("--charge", type=int, required=True)
+    parser.add_argument("--nstates", type=int, default=60,
+                         help="TD-DFT singlet roots [default: 60, matches Paper 1]")
+    parser.add_argument("--scfconv", type=int, default=8,
+                         help="SCF energy convergence criterion, as the N "
+                              "in $scfconv N (10^-N Hartree) [default: 8, "
+                              "matches Paper 1 production].")
+    parser.add_argument("--grid", default="m4",
+                         help="DFT numerical integration grid size, as "
+                              "passed to `grid <value>` in define's dft "
+                              "menu (e.g. m3/m4/m5) [default: m4].")
+    parser.add_argument("--output-dir", required=True)
+    return parser
+
 
 EXTRA_BLOCK = (
     "$senex\n"
     "$rij\n"
     "$disp3 bj\n"
-    "$scfconv 8\n"
+    "$scfconv {scfconv}\n"
     "$denconv 1d-7\n"
     "$scfinstab rpas\n"
     "$soes\n"
@@ -60,7 +89,7 @@ def advance_to(child, patterns, max_steps=25, step_wait=3):
     raise RuntimeError(f"define: did not reach any of {patterns}")
 
 
-def run_define(work_dir, charge, log_path):
+def run_define(work_dir, charge, grid, log_path):
     import pexpect
     child = pexpect.spawn("define", cwd=work_dir, timeout=20, encoding="utf-8")
     with open(log_path, "w") as logf:
@@ -83,7 +112,7 @@ def run_define(work_dir, charge, log_path):
         send("")
         send("dft")
         send("func hse06")
-        send("grid m4")
+        send(f"grid {grid}")
         send("on")
         send("")
         send("*", wait=2.0)
@@ -96,15 +125,7 @@ def run_define(work_dir, charge, log_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Build a reusable HSE06-D3(BJ)/def2-TZVP Turbomole "
-                    "template (production level) for one protonation state.")
-    parser.add_argument("--xyz", required=True)
-    parser.add_argument("--charge", type=int, required=True)
-    parser.add_argument("--nstates", type=int, default=60,
-                         help="TD-DFT singlet roots [default: 60, matches Paper 1]")
-    parser.add_argument("--output-dir", required=True)
-    args = parser.parse_args()
+    args = build_arg_parser().parse_args()
 
     try:
         import pexpect  # noqa: F401
@@ -124,7 +145,7 @@ def main():
     )
 
     log_path = os.path.join(args.output_dir, "define_session.log")
-    run_define(args.output_dir, args.charge, log_path)
+    run_define(args.output_dir, args.charge, args.grid, log_path)
 
     control_path = os.path.join(args.output_dir, "control")
     if not os.path.isfile(control_path):
@@ -138,19 +159,21 @@ def main():
             f"check {log_path} and {control_path} by hand.")
 
     # define's own default $scfconv would otherwise duplicate (and
-    # potentially conflict with) the $scfconv 8 added below to match
-    # Paper 1 exactly.
-    import re
+    # potentially conflict with) the $scfconv override added below.
     text = re.sub(r"^\$scfconv\s+\d+\s*\n", "", text, count=1, flags=re.MULTILINE)
 
-    text = text.replace("$end", EXTRA_BLOCK.format(nstates=args.nstates) + "$end", 1)
+    text = text.replace(
+        "$end",
+        EXTRA_BLOCK.format(nstates=args.nstates, scfconv=args.scfconv) + "$end",
+        1,
+    )
     with open(control_path, "w") as f:
         f.write(text)
 
     print(f"Template ready in {args.output_dir}/ (control, basis, auxbasis, mos, "
-          f"coord; charge={args.charge}, HSE06-D3(BJ)/def2-TZVP, grid m4, "
-          f"RI-J, senex, TD-DFT {args.nstates} singlet states -- Paper 1 "
-          f"production settings).")
+          f"coord; charge={args.charge}, HSE06-D3(BJ)/def2-TZVP, grid "
+          f"{args.grid}, scfconv {args.scfconv}, TD-DFT {args.nstates} "
+          f"singlet states -- Paper 1 production settings).")
 
 
 if __name__ == "__main__":
