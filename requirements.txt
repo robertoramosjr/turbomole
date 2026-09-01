@@ -6,3 +6,9 @@ numpy>=1.24
 # do sistema (ex.: apt install veusz) do que via pip, por causa da
 # dependencia de Qt/PyQt. Ver README.md, secao "Instalacao".
 veusz>=3.6
+
+# Usado apenas por render_cube_isosurface.py (Estagio 1e - isosuperficies
+# HOMO/LUMO/NTO). Renderizacao headless (matplotlib Agg + marching cubes),
+# sem GUI/X11/VMD/PyMOL.
+matplotlib>=3.5
+scikit-image>=0.19
