@@ -85,6 +85,15 @@ partir do Molden corrigido pelo Molden2AIM — ver
 | `compare_charges.py` | Compara cargas de Bader vs. Mulliken átomo a átomo (correlação, concordância de sinal, maiores discrepâncias). |
 | `group_average_charges.py` | Média e faixa das cargas líquidas de Bader por grupo funcional (`groups.json`), para o texto do artigo. |
 
+### Estágio 3 — isosuperfícies HOMO/LUMO/NTO (opcional)
+
+Entrada: arquivos `.cub` gerados via `$pointval mo`/`$pointval nto` —
+ver [MANUAL.md, Estágio 1e](MANUAL.md#10-estágio-1e--isosuperfícies-homolumo-e-nto-do-s1-opcional).
+
+| Script | Função |
+|---|---|
+| `render_cube_isosurface.py` | Renderização headless (matplotlib Agg + marching cubes do scikit-image) de um cubo Gaussian em imagem estática — lóbulo positivo/negativo em cores separadas, átomos/ligações como referência estrutural. Não depende de GUI/X11/VMD/PyMOL/Multiwfn-com-GUI. `--isovalue` é escolha estética — documente o valor usado. |
+
 ### Estágio 3 — figuras (Veusz)
 
 | Script | Função |

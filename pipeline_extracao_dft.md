@@ -232,6 +232,116 @@ esse `qpenergies.dat`.
 
 ---
 
+## Estágio 1e — Isosuperfícies HOMO/LUMO e NTO do S1 (opcional)
+
+Visualização real-space dos orbitais de fronteira e do par
+hole/particle do S1 (NTO) — não confunda os dois, comandos/cubos
+diferentes. Sempre numa **cópia separada** da produção.
+
+```bash
+cp -r <pasta_producao> <pasta_producao>_orbitals
+cd <pasta_producao>_orbitals
+
+# HOMO/LUMO
+sed -i '/^\$end/i $pointval mo <HOMO>-<LUMO> fmt=cub' control
+dscf -proper > pointval_homolumo.out
+ls *.cub   # confirma os nomes reais gerados, não presume
+```
+
+**NTO do S1 via `proper` interativo** (Turbomole 7.8.1 já suporta —
+não espere a 7.9), a partir da pasta com `escf.out` já calculado:
+
+```
+mos          # menu "get MOs, LMOs, or NTOs"
+dftnto       # NTO ground->excited via escf (não `ntos`, que é p/ ricc2)
+1            # estado excitado (1 = S1)
+1            # definição do NTO -- SEMPRE 1 ("renormalized XX")
+```
+
+**Bug confirmado (7.8.1):** a definição `2` ("(X+Y)(X+Y)") causa
+SIGSEGV em `cc_ntos.f:129`. Use só a `1`.
+
+Grava `nto_occ`/`nto_vir` (base CAO); confirme que o `Frequency`
+impresso bate com a energia do estado em `escf.out` antes de seguir.
+Gera os cubos direto desses arquivos (sem conversão Molden):
+
+```bash
+sed -i 's/^\$pointval.*/$pointval nto <indice_dominante> fmt=cub/' control
+dscf -proper > pointval_nto.out
+ls *.cub   # ex. nto_occ_1.cub (hole), nto_vir_1.cub (particle)
+```
+
+Se `proper` não tiver `dftnto`, não invente workaround — reporte e
+pare (alternativa: Multiwfn a partir do `molden_new.molden`, Estágio
+1b-alt2).
+
+**Renderizar** (sem GUI/VMD/PyMOL/Multiwfn-com-GUI — `Multiwfn_noGUI`
+tem a opção de isosuperfície como no-op nesse build):
+
+```bash
+python ../scripts/render_cube_isosurface.py --cube 81a.cub \
+    --out homo.png --isovalue 0.03 --title "HOMO"
+```
+
+`--isovalue` é escolha estética — documente sempre o valor usado
+(`0.02`–`0.05` costuma funcionar). Ver Estágio 1e do `MANUAL.md` para
+o menu completo do `proper` e mais detalhes.
+
+---
+
+## Estágio 1f — Espectro Raman harmônico (opcional)
+
+Intensidades Raman por modo, a partir da Hessiana já calculada no
+`aoforce` do Estágio 1 — falta só a derivada da polarizabilidade
+(o IR usa derivada do dipolo). **Não é automático a partir só do
+`egrad`** (confirmado em `DOC/Documentation.pdf` local, Seção 15.2, e
+no script `$TURBODIR/scripts/raman`): são 3 passos — `aoforce` (já
+existe) → `egrad`+`$scfinstab polly` → **`intense`** (projeta nos
+modos normais, escreve as intensidades). Sempre numa **cópia
+separada**:
+
+```bash
+cp -r <pasta_producao> <pasta_producao>_raman
+cd <pasta_producao>_raman
+sed -i '/^\$end/i $scfinstab polly' control
+grep -nE '^\$disp3|^\$senex|gridsize' control   # confirma que bate com a produção
+```
+
+**Estime o custo antes de rodar em produção completa** — `egrad`+
+`polly` é resposta analítica sobre as 3N coordenadas cartesianas, da
+mesma ordem de grandeza do `aoforce` (compare `total wall-time` de
+`aoforce_d3.out`/`escf_d3.out` já medidos). Rode via job PBS (mesmo
+template do Estágio 1), não no login node:
+
+```bash
+egrad > egrad_polly.out       # dentro do job PBS
+qstat -f <job_id>              # confirma job_state = R
+```
+
+Depois de terminar, confirma no log que gerou derivadas de
+polarizabilidade antes de seguir. **Projeta nos modos normais**
+(passo separado, não pule):
+
+```bash
+intense > intense_raman.out
+grep -c "^\s*[0-9]" vibspectrum   # confirma números na coluna RAMAN, não só YES/-
+```
+
+**Não rode `intense` sem os dados do `polly` prontos** — ele roda
+mesmo assim (sem checagem de pré-condição) e só deixa um marcador
+inofensivo (`$actual step intense`) em `control`, sem gerar Raman de
+verdade.
+
+Adapte `parse_ir.py`/`plot_ir.py` (mesma FWHM de 10 cm⁻¹) pra extrair
+e plotar a coluna RAMAN em vez de IR — são duas intensidades
+diferentes por modo, não some/escale uma pra virar a outra. Confirme
+`$disp3`/`$senex`/`gridsize`/`$scfconv` idênticos à produção do IR já
+publicado. Se `egrad`/`intense` reclamar de incompatibilidade com
+`$senex`/`$rik`, não troque o esquema de troca exata sozinho — reporte
+o erro exato.
+
+---
+
 ## Estágio 2 — Extração local (parsers Python)
 
 ```bash

@@ -34,6 +34,8 @@ referência de cada flag.
 | 1b-alt3 — PDOS por elemento×momento angular via SCPA | local (Multiwfn) | Decomposição s/p por elemento, sem o artefato de sinal do Mulliken |
 | 1c — Quebra de simetria de spin | cluster, cópia separada | Diagnóstico opcional de instabilidade de spin |
 | 1d — Correção quasipartícula G0W0 | cluster (GW-BSE/TDA) + local | DOS orbital KS vs. G0W0, base do exciton binding |
+| 1e — Isosuperfícies HOMO/LUMO e NTO (S1) | cluster (`proper`/`dscf -proper`) + local (render) | Visualização real-space dos orbitais de fronteira e do par hole/particle do S1, p/ investigar caráter de transferência de carga |
+| 1f — Espectro Raman harmônico | cluster (PBS, `egrad`+`intense`) | Intensidades Raman projetadas nos modos normais já calculados no Estágio 1 |
 | 2 — Extração local | local | Parsers Python → datasets Veusz (`.dat`) |
 | 3 — Figuras | local | Scripts `veusz/plot_*.py` → figuras finais |
 | 4 — Comparações entre rodadas | local, sob demanda | Compara funcionais/níveis de teoria já extraídos (não gera figura) |
@@ -59,6 +61,14 @@ referência de cada flag.
   `plot_molecule_vesta_style.py`): ambiente conda `vasp_env` com
   `rdkit`, `ase` e `povray` — a base deste repositório (`.venv` do
   [README.md](README.md)) não os inclui.
+- **Só para o Estágio 1e** (renderização de isosuperfícies):
+  `matplotlib` e `scikit-image` (ver `requirements.txt`) — rodam no
+  Python do sistema mesmo sem GUI/`$DISPLAY`, ao contrário de
+  VMD/PyMOL/Multiwfn com GUI, que não estavam disponíveis neste
+  ambiente quando o estágio foi documentado.
+- **Só para o Estágio 1f** (Raman): binário `intense` do Turbomole,
+  além de `egrad` — confirme que ambos estão no `PATH` junto com os
+  demais (`module load turbomole`).
 
 ---
 
@@ -614,7 +624,192 @@ discretos de `qpenergies.dat` (mesma técnica do Estágio 1b-alt3).
 
 ---
 
-## 10. Estágio 2 — Extração local (parsers Python)
+## 10. Estágio 1e — Isosuperfícies HOMO/LUMO e NTO do S1 (opcional)
+
+**Objetivo:** visualização real-space dos orbitais de fronteira
+(HOMO/LUMO canônicos do estado fundamental) e, separadamente, do par
+Natural Transition Orbital (NTO) hole/particle do S1 — usado para
+investigar caráter de transferência de carga sugerido por outro nível
+de teoria (ex. divergência HSE06 vs. CAM-B3LYP no gap/estado S1). Não
+confunda os dois: HOMO/LUMO são orbitais canônicos do estado
+fundamental; os NTOs são a decomposição SVD da densidade de transição
+do S1 — comandos e arquivos `.cub` diferentes, não misture.
+
+**Trabalhe sempre numa cópia da pasta de produção**, nunca na
+original — o `dscf -proper`/`proper` regravam `control` (novos data
+groups `$pointval`, `$ntos_occ`/`$ntos_vir`):
+
+```bash
+cp -r <pasta_producao> <pasta_producao>_orbitals
+cd <pasta_producao>_orbitals
+```
+
+**10.1. HOMO/LUMO** (sintaxe confirmada, comando leve — roda no login
+node sem problema):
+
+```bash
+grep -n "\$closed shells" -A 1 control   # confirma o índice do HOMO (topo da faixa ocupada)
+sed -i '/^\$end/i $pointval mo <HOMO>-<LUMO> fmt=cub' control
+dscf -proper > pointval_homolumo.out
+ls *.cub   # confirme os nomes reais gerados (ex. 81a.cub, 82a.cub) -- não presuma
+```
+
+`grep -A 4 "HOMO-LUMO Separation" pointval_homolumo.out` mostra as
+energias de cada orbital, úteis para o título da figura.
+
+**10.2. NTO do S1 via `proper`** (Turbomole 7.8.1 já tem essa
+funcionalidade — não é preciso esperar a 7.9): a partir da pasta com o
+`escf.out` (ou `escf_d3.out`) já calculado, rode `proper` interativo:
+
+```
+mos          # menu "get MOs, LMOs, or NTOs"
+dftnto       # NTOs ground->excited state via escf (não `ntos`, que é p/ ricc2)
+1            # número do estado excitado (1 = S1)
+1            # definição do NTO: 1 = renormalized excitation part (XX)
+```
+
+**Bug confirmado (7.8.1):** a opção de definição `2`
+("excitation+deexcitation part (X+Y)(X+Y)") causa **SIGSEGV** em
+`cc_ntos.f:129`, reprodutível. Use sempre a opção `1`; não tem
+workaround documentado além de evitar a opção 2.
+
+Isso grava `nto_occ`/`nto_vir` (coeficientes em base CAO, um par por
+autovalor) e imprime a tabela de contribuição — confirme que o
+`Frequency` impresso bate com a energia do estado desejado em
+`escf.out`/`escf_d3.out` (garante que "estado 1" é de fato o S1) e que
+há um par dominante (`%contrib` alto) antes de prosseguir; se a
+excitação for multi-configuracional, mais de um par de NTO importa e a
+visualização de um único par não conta a história toda.
+
+**10.3. Gerar os cubos dos NTOs** — `$pointval nto` lê diretamente de
+`nto_occ`/`nto_vir` (não precisa de conversão Molden):
+
+```bash
+sed -i 's/^\$pointval.*/$pointval nto <indice_dominante> fmt=cub/' control
+dscf -proper > pointval_nto.out
+ls *.cub   # ex. nto_occ_1.cub (hole), nto_vir_1.cub (particle)
+```
+
+**Se `proper` não tiver `dftnto`** (versão mais antiga que a 7.8.1):
+não invente workaround — reporte e pare. A alternativa documentada é
+gerar o Molden (`tm2molden`) e usar a análise de NTO nativa do Multiwfn
+(módulo de análise de excitação) a partir do `molden_new.molden` já
+validado no Estágio 1b-alt2.
+
+**10.4. Renderizar as isosuperfícies:** sem GUI/`$DISPLAY` (e sem
+VMD/PyMOL/Multiwfn-com-GUI instalados no cluster, só
+`Multiwfn_noGUI` — cuja opção `0 Show molecular structure and view
+isosurface` é um no-op nesse build, confirmado testando), use
+`render_cube_isosurface.py` (matplotlib + scikit-image, 100% headless,
+sem instalar nada novo):
+
+```bash
+python ../scripts/render_cube_isosurface.py --cube 81a.cub \
+    --out homo.png --isovalue 0.03 --title "HOMO (orbital <HOMO>a)"
+python ../scripts/render_cube_isosurface.py --cube nto_occ_1.cub \
+    --out nto_hole_S1.png --isovalue 0.03 --title "NTO hole, S1"
+```
+
+O isovalor (`--isovalue`, em e$^{-1/2}$bohr$^{-3/2}$) é escolha
+estética, não física — documente sempre qual valor foi usado (`0.02`–
+`0.05` costuma funcionar bem; ajuste se a superfície sair vazia ou
+saturada). O script lê o cubo diretamente (formato Gaussian-cube
+padrão, `OUTER LOOP: X, MIDDLE LOOP: Y, INNER LOOP: Z`), desenha
+lóbulo positivo/negativo em cores separadas, e desenha átomos/ligações
+(cutoff 1.75 Å) só como referência estrutural.
+
+**Se a ferramenta certa não estiver disponível** (ex. ambiente sem
+VMD/PyMOL/GUI, como aconteceu aqui): não instale software novo
+silenciosamente nem force um workaround sem avisar — reporte o gap e
+peça a decisão (script Python local vs. entregar só os `.cub` para
+renderização na máquina do usuário vs. instalar algo novo).
+
+---
+
+## 11. Estágio 1f — Espectro Raman harmônico (opcional)
+
+**Objetivo:** intensidades Raman por modo normal, a partir da mesma
+Hessiana/modos normais já calculados no `aoforce` do Estágio 1 — só
+falta a derivada do tensor de polarizabilidade (o IR usa derivada do
+dipolo, que já se tem; Raman usa polarizabilidade).
+
+**Mecanismo confirmado (`DOC/Documentation.pdf` local, Seção 15.2, e
+o script `$TURBODIR/scripts/raman`): não é automático a partir só do
+`egrad`.** É um procedimento de 3 passos: `aoforce` (frequências/modos
+— já existe, não refaz) → `egrad` com `$scfinstab polly` (derivadas
+cartesianas de polarizabilidade estática) → **`intense`** (projeta nos
+modos normais e escreve as intensidades Raman). O `vibspectrum`
+reserva uma coluna `RAMAN` ao lado de `IR` mesmo antes desse fluxo, mas
+só com o símbolo de regra de seleção (`YES`/`-`) — sem números até o
+`intense` rodar.
+
+**Trabalhe numa cópia da pasta de produção**, nunca na original:
+
+```bash
+cp -r <pasta_producao> <pasta_producao>_raman
+cd <pasta_producao>_raman
+sed -i '/^\$end/i $scfinstab polly' control
+grep -nE '^\$disp3|^\$senex|gridsize' control   # confirma que bate com a produção (mesmo nível de teoria)
+```
+
+**11.1. Custo — estime antes de rodar em produção completa.** `egrad`
+com `polly` é uma resposta analítica (Lagrangiano/Z-vector) sobre
+todas as 3N coordenadas cartesianas — pela documentação, "computation
+of polarizability derivatives at the computational cost which is only
+2–3 higher than for the electronic polarizability itself" — mas isso
+ainda é da mesma ordem de grandeza do `aoforce` (que já resolve CPHF
+para as 3N coordenadas). Compare com os tempos já medidos na produção
+(`aoforce_d3.out`, `escf_d3.out` — `tail -5` de cada, campo
+`total wall-time`) antes de decidir rodar interativamente ou via job.
+
+**11.2. Rodar via job PBS** (mesmo template do Estágio 1, `job.pbs` —
+troque só o corpo do job):
+
+```bash
+# job_egrad_polly.pbs: mesmo cabeçalho #PBS do job.pbs de produção
+egrad > egrad_polly.out
+qsub job_egrad_polly.pbs
+qstat -f <job_id>   # confirme job_state = R e o exec_host
+```
+
+Depois de terminar, confirme no log que ele de fato gerou derivadas de
+polarizabilidade (procure "polarizability derivative" ou similar) antes
+de seguir para o `intense`.
+
+**11.3. Projetar nos modos normais** (`intense` — separado do
+`egrad`, não pule este passo):
+
+```bash
+intense > intense_raman.out
+grep -c "^\s*[0-9]" vibspectrum   # confirma que a coluna RAMAN agora tem números, não só YES/-
+```
+
+**Não rode `intense` numa pasta sem os dados de `polly` prontos** —
+sem `$scfinstab dynpol`/`polly` no `control` e sem a saída do `egrad`,
+ele tenta rodar mesmo assim (não há checagem de pré-condição) e só
+deixa um marcador inofensivo (`$actual step intense`) em `control`,
+sem gerar Raman de verdade.
+
+**11.4. Extração e figura** — adapte `parse_ir.py` (ou escreva um
+`parse_raman.py` análogo) para ler a coluna RAMAN do `vibspectrum` em
+vez de IR, e reaproveite o broadening Lorentziano/Gaussiano de
+`plot_ir.py` com a mesma FWHM de 10 cm⁻¹ usada no IR, para manter as
+duas figuras comparáveis no mesmo paper.
+
+**Armadilhas conhecidas:**
+1. Colunas IR e RAMAN do `vibspectrum` são duas intensidades
+   diferentes por modo — não some nem escale uma pra virar a outra.
+2. Confirme `$disp3`/`$senex`/`gridsize`/`$scfconv` idênticos aos da
+   produção do IR já publicado, ou as duas figuras deixam de ser
+   diretamente comparáveis no mesmo paper.
+3. Se `egrad`/`intense` reclamar de incompatibilidade com `$senex`/
+   `$rik` (RIK/troca exata seminumérica nem sempre é suportada em todo
+   tipo de resposta linear) — não troque o esquema de troca exata
+   sozinho; reporte o erro exato e peça a decisão.
+
+---
+
+## 12. Estágio 2 — Extração local (parsers Python)
 
 **Objetivo:** transformar as saídas brutas do Turbomole/Bader (e, se
 aplicável, do Multiwfn/GW-BSE) em datasets no formato "descriptor" do
@@ -685,7 +880,7 @@ também [README.md](README.md)).
 
 ---
 
-## 11. Estágio 3 — Figuras (Veusz)
+## 13. Estágio 3 — Figuras (Veusz)
 
 **Objetivo:** gerar as figuras finais a partir dos datasets do
 Estágio 2.
@@ -774,7 +969,7 @@ primeiro:
 
 ---
 
-## 12. Estágio 4 — Comparações entre rodadas/níveis de teoria (sob demanda)
+## 14. Estágio 4 — Comparações entre rodadas/níveis de teoria (sob demanda)
 
 Não fazem parte da sequência sequencial 0→3 — não geram figura, geram
 tabelas comparativas (CSV) a partir de saídas já extraídas de
@@ -825,7 +1020,7 @@ experimento).
 
 ---
 
-## 13. Solução de problemas
+## 15. Solução de problemas
 
 | Sintoma | Causa provável / correção |
 |---|---|
@@ -838,10 +1033,12 @@ experimento).
 | `WARNING: "settings.ini" was found neither in current folder nor in the path defined by "Multiwfnpath"` (Multiwfn) | `$Multiwfnpath` truncado — o Multiwfn usa um buffer Fortran de tamanho fixo; caminhos longos (~116 caracteres já basta) são cortados silenciosamente. Instale em `~/local_bin/Multiwfn`, nunca dentro de uma pasta de cálculo. |
 | Multiwfn trava/crasha em moléculas grandes (>800 funções de base) | Stack overflow — rode com `ulimit -s unlimited` e `export OMP_STACKSIZE=500M` antes de `Multiwfn_noGUI`. |
 | `povray` reclama `"Viewing angle has to be smaller than 180 degrees"` (`plot_molecule_vesta_style.py`) | Bug do parser do build conda-forge com o bloco de câmera default do ASE (sem `angle` explícito) — use uma câmera perspectiva explícita com `angle` definido. |
+| `proper` trava com SIGSEGV em `cc_ntos.f` (Estágio 1e, `dftnto`) | Bug confirmado na definição de NTO `2` ("(X+Y)(X+Y)") no Turbomole 7.8.1 — use sempre a definição `1` ("renormalized XX"). |
+| Coluna `RAMAN` do `vibspectrum` só tem `YES`/`-`, sem números (Estágio 1f) | `intense` não rodou (ou rodou sem os dados do `egrad`+`polly` prontos) — confira `$scfinstab polly` no `control` e rode `egrad` antes do `intense`, nessa ordem. |
 
 ---
 
-## 14. Referência rápida
+## 16. Referência rápida
 
 Descrição de cada script, dependências e formato dos datasets/`groups.json`:
 ver [README.md](README.md).
