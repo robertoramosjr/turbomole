@@ -1,0 +1,26 @@
+=== sáb set 26 21:39:55 -03 2026 resuming aoforce/dscf-proper in /home/rramos/work_turbomole/Cu-dupleto/pbe_m4_d3 (PARNODES=16) ===
+--- aoforce ---
+aoforce: 0 exit, 215277s (node=node004, cores=16)
+ imaginary wave numbers indicate a negative curvature of the energy surface.
+--- dscf_proper ---
+dscf_proper: 0 exit, 179s (node=node004, cores=16)
+=== ter set 29 09:30:51 -03 2026 finished in /home/rramos/work_turbomole/Cu-dupleto/pbe_m4_d3 ===
+stage         start_epoch  end_epoch   elapsed_seconds  exit_status
+jobex         1788300714   1788315530  14816            0
+ridft_proper  1788315530   1788315535  5                0
+bader         1788315535   1788315535  0                0
+ridft_tight   1788315535   1788315796  261              0
+escf          1788315796   1788315796  0                0
+aoforce       1788315796   1788315796  0                0
+dscf_proper   1788315796   1788315796  0                0
+jobex         1788917883   1789030595  112712           0
+ridft_proper  1789030595   1789030996  401              0
+bader         1789030996   1789031011  15               0
+ridft_tight   1789031011   1789031011  0                0
+jobex         1789078764   1789134771  56007            0
+ridft_proper  1789134771   1789134777  6                0
+bader         1789134777   1789134791  14               0
+ridft_tight   1789134791   1789135000  209              0
+escf          1789135000   1789152186  17186            0
+aoforce       1790469595   1790684872  215277           0
+dscf_proper   1790684872   1790685051  179              0

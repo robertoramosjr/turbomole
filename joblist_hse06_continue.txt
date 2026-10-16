@@ -1,0 +1,3 @@
+/home/rramos/work_turbomole/Ni-singleto/hse06_m4_d3
+/home/rramos/work_turbomole/Zn-singleto/hse06_m4_d3
+/home/rramos/work_turbomole/Cu-dupleto/hse06_m4_d3

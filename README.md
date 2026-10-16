@@ -132,8 +132,8 @@ experimento):
 
 | Script | Função |
 |---|---|
-| `compare_functionals.py` | Extrai a excitação TD-DFT dominante de vários `escf.out` (um por funcional) e monta tabela comparativa (ex.: HSE06 vs. híbrido global vs. híbrido de longo alcance). |
-| `compare_low_states.py` | Extrai os N estados excitados mais baixos de várias rodadas `escf.out`/`escf_bse.out` (TD-DFT com funcionais diferentes, ou GW-BSE/TDA) numa única tabela longa, com energia real, gap orbital do par dominante e o binding por estado entre os dois. |
+| `compare_functionals.py` | Extrai a excitação TD-DFT dominante (maior força de oscilador) de vários `escf.out` (um por funcional). **Cuidado**: em moléculas com estado escuro de menor energia (ex. n→π* do azobenzeno), isso pega o estado errado — usar `compare_low_states.py`. |
+| `compare_low_states.py` | Extrai os N estados excitados mais baixos de várias rodadas `escf.out`/`escf_bse.out` (TD-DFT com funcionais diferentes, ou GW-BSE/TDA) numa única tabela longa, com energia real, gap orbital do par dominante e o binding por estado entre os dois. `--reference "rótulo:energia_eV"` (repetível) casa cada estado com uma referência por proximidade de energia e imprime a separação entre bandas quando há 2+ referências. |
 | `compute_exciton_binding.py` | Energia de ligação do exciton, `E_gap(HOMO-LUMO) - E_exciton(S1)`, por nível de teoria — gap Kohn-Sham para TD-DFT, gap G0W0 (de `qpenergies.dat`) para GW-BSE/TDA. |
 | `convergence_table.py` | Tabela de convergência numérica (energia SCF + excitação dominante) entre rodadas que variam grade de integração, threshold de SCF, base etc., com a mesma geometria. |
 | `ir_error_stats.py` | MAE, RMSE e desvio absoluto máximo entre bandas de IR calculadas e experimentais, a partir de um CSV de pares já atribuídos manualmente. |

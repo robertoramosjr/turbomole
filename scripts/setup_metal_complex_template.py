@@ -103,10 +103,12 @@ COMMON_EXTRA_BLOCK = (
     "$scfconv {scfconv}\n"
     "$denconv 1d-7\n"
     "$scfiterlimit 150\n"
-    "$scfinstab rpas\n"
+    "$scfinstab {scfinstab}\n"
     "$soes\n"
-    " a           1-{nstates}\n"
+    " a           {nstates}\n"
     "$rpacor 500\n"
+    "$pointval fmt=cub\n"
+    "$pop mulliken loewdin nbo paboon\n"
 ) + STATPT_BLOCK
 
 HSE06_EXTRA = "$senex\n$rij\n" + COMMON_EXTRA_BLOCK
@@ -217,11 +219,17 @@ def main():
     # Same for its default $scfiterlimit (30).
     text = re.sub(r"^\$scfiterlimit\s+\d+\s*\n", "", text, count=1, flags=re.MULTILINE)
 
+    # define auto-detects open-shell systems (see module docstring) and
+    # writes $uhf into control on its own -- $scfinstab rpas (the
+    # closed-shell RPA/TDDFT keyword) is "NOT IMPLEMENTED FOR UHF" and
+    # aborts escf immediately for those systems, so branch on it here.
+    scfinstab = "urpa" if re.search(r"^\$uhf\b", text, re.MULTILINE) else "rpas"
+
     extra = {"hse06": HSE06_EXTRA, "pbe": PBE_EXTRA, "pbe0": PBE0_EXTRA}[args.functional]
     text = text.replace(
         "$end",
         extra.format(nstates=args.nstates, scfconv=args.scfconv,
-                     thrmaxgrad=args.thrmaxgrad) + "$end",
+                     thrmaxgrad=args.thrmaxgrad, scfinstab=scfinstab) + "$end",
         1,
     )
     with open(control_path, "w") as f:

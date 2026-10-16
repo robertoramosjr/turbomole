@@ -15,20 +15,33 @@ The source `mos` is copied over as an SCF initial guess (a converged
 wavefunction from a nearby functional restarts faster than an EHT
 guess); ridft/escf reconverge it for the new functional from scratch.
 
-Global hybrids without screened exchange (PBE0, B3LYP, CAM-B3LYP) need
-RI-K (--enable-rik) to be tractable: with only RI-J, exact exchange
-falls back to conventional 4-index integrals every SCF iteration,
-which is dramatically slower than screened functionals like HSE06
-(confirmed empirically -- a plain-RI-J PBE0 single point did not
-finish one SCF cycle in 3 minutes on this molecule; HSE06 -proper
-finished in 35s). RI-K needs a matching auxiliary basis in $jkbas;
-the same def2-TZVP RI-JK set from Turbomole's jkbasen library is used.
+Global hybrids without screened exchange (PBE0, B3LYP) need RI-K
+(--enable-rik) to be tractable: with only RI-J, exact exchange falls
+back to conventional 4-index integrals every SCF iteration, which is
+dramatically slower than screened functionals like HSE06 (confirmed
+empirically -- a plain-RI-J PBE0 single point did not finish one SCF
+cycle in 3 minutes on this molecule; HSE06 -proper finished in 35s).
+RI-K needs a matching auxiliary basis in $jkbas; the same def2-TZVP
+RI-JK set from Turbomole's jkbasen library is used.
+
+Range-separated hybrids (CAM-B3LYP, wB97X, ...) CANNOT use RI-K --
+Turbomole refuses outright ("range-separated hybrids not possible
+with RI-K!"), confirmed empirically when --enable-rik was tried on
+CAM-B3LYP. Use --enable-senex instead: seminumerical exchange, on for
+both SCF iterations and the CPHF/CPKS-type response equations that
+TD-DFT (escf) solves -- this accelerates both the ground-state SCF
+and the excited-state step, unlike RI-K which only speeds up SCF.
 
 Usage:
     python ~/scripts/prepare_functional_benchmark.py \
         --source-dir azo_trans_hse06_m4_d3 \
         --output-dir azo_trans_pbe0_m4_d3 \
         --dft-keyword pbe0 --nstates 10 --enable-rik
+
+    python ~/scripts/prepare_functional_benchmark.py \
+        --source-dir azo_trans_hse06_m4_d3 \
+        --output-dir azo_trans_camb3lyp_m4_d3 \
+        --dft-keyword cam-b3lyp --nstates 10 --enable-senex
 """
 
 import argparse
@@ -55,36 +68,50 @@ KEEP_PREFIXES = [
 # input control -- those are stripped back out by a second filter
 # pass after this runs (see enable_rik()).
 DEFINE_RIK_STDIN = "\n\n\nn\nn\nrijk\njkbas\nbl\n*\n*\n*\n"
-
 RIK_KEEP_PREFIXES = ["rik", "jkbas"]
 
+# Validated the same way: general menu -> "senex" -> "on" (switch senex
+# on for SCF) -> "n" to the gradient follow-up (no geometry/egrad work
+# here) -> "y" to also use it in CP-HF/KS (the response equations
+# escf's TD-DFT solves) -> blank to leave the senex menu -> "*" to
+# save and exit define.
+DEFINE_SENEX_STDIN = "\n\n\nn\nn\nsenex\non\nn\ny\n\n*\n"
+SENEX_KEEP_PREFIXES = ["senex", "esenex"]
 
-def enable_rik(output_dir):
+
+def run_define_and_refilter(output_dir, stdin, extra_keep_prefixes, label):
+    """Runs `define` with a validated stdin script to toggle one
+    exchange-acceleration option on, then strips back out the
+    optimizer/derivative data groups define re-adds by default when it
+    doesn't find any in the input control (even from a killed/aborted
+    define session earlier in the same folder -- define writes control
+    incrementally, not just at the end, so this filter runs
+    unconditionally rather than trusting a clean exit)."""
     result = subprocess.run(
-        ["define"], cwd=output_dir, input=DEFINE_RIK_STDIN,
+        ["define"], cwd=output_dir, input=stdin,
         capture_output=True, text=True, timeout=60,
     )
     combined_output = result.stdout + result.stderr
-    with open(os.path.join(output_dir, "define_rik.out"), "w") as f:
+    with open(os.path.join(output_dir, f"define_{label}.out"), "w") as f:
         f.write(combined_output)
 
     if "define ended normally" not in combined_output:
         raise RuntimeError(
-            f"define did not end normally while enabling RI-K in {output_dir} -- "
-            f"check {output_dir}/define_rik.out before trusting this folder.")
+            f"define did not end normally while enabling {label} in {output_dir} -- "
+            f"check {output_dir}/define_{label}.out before trusting this folder.")
 
     with open(os.path.join(output_dir, "control"), "r") as f:
         control_text = f.read()
 
     blocks = split_data_groups(control_text)
-    all_prefixes = KEEP_PREFIXES + RIK_KEEP_PREFIXES
+    all_prefixes = KEEP_PREFIXES + extra_keep_prefixes
     kept, dropped = [], []
     for block in blocks:
         header = block_header(block)
         matched = any(re.match(re.escape(p) + r"(\s|$)", header) for p in all_prefixes)
         (kept if matched else dropped).append(block)
 
-    print(f"define enabled RI-K; re-filtered to {len(kept)} data groups, "
+    print(f"define enabled {label}; re-filtered to {len(kept)} data groups, "
           f"dropped {len(dropped)} that define re-added on its own:")
     for block in dropped:
         print(f"  dropped: ${block_header(block).splitlines()[0]}")
@@ -148,9 +175,19 @@ def main():
                          help="Number of singlet roots for $soes")
     parser.add_argument("--enable-rik", action="store_true",
                          help="Run `define` to add $rik + a matching RI-JK auxiliary "
-                              "basis (needed for global/range-separated hybrids without "
-                              "screened exchange, e.g. PBE0, B3LYP, CAM-B3LYP)")
+                              "basis (needed for global hybrids without screened "
+                              "exchange, e.g. PBE0, B3LYP -- NOT usable with "
+                              "range-separated hybrids like CAM-B3LYP, Turbomole "
+                              "refuses those; use --enable-senex for those instead)")
+    parser.add_argument("--enable-senex", action="store_true",
+                         help="Run `define` to switch on seminumerical exchange for "
+                              "SCF and CPHF/CPKS (needed for range-separated hybrids "
+                              "like CAM-B3LYP, which reject --enable-rik)")
     args = parser.parse_args()
+
+    if args.enable_rik and args.enable_senex:
+        raise ValueError("--enable-rik and --enable-senex are alternatives for "
+                          "different functional families -- pick one.")
 
     if os.path.exists(args.output_dir):
         raise FileExistsError(f"{args.output_dir} already exists -- refusing to overwrite.")
@@ -174,7 +211,9 @@ def main():
                     os.path.join(args.output_dir, fname))
 
     if args.enable_rik:
-        enable_rik(args.output_dir)
+        run_define_and_refilter(args.output_dir, DEFINE_RIK_STDIN, RIK_KEEP_PREFIXES, "rik")
+    elif args.enable_senex:
+        run_define_and_refilter(args.output_dir, DEFINE_SENEX_STDIN, SENEX_KEEP_PREFIXES, "senex")
 
     print(f"\nNew folder ready -> {args.output_dir}")
     print("(control + coord + basis + auxbasis + mos; mos is a warm-start guess "

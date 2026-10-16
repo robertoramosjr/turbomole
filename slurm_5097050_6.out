@@ -1,0 +1,18 @@
+=== ter set  8 22:38:03 -03 2026 starting pipeline in /home/rramos/work_turbomole/Cu-dupleto/pbe_m4_d3 (PARNODES=16) ===
+--- jobex ---
+jobex: 0 exit, 112712s (node=node043, cores=16)
+WARNING: jobex reported non-convergence/abnormal exit, see jobex.out
+WARNING: jobex did not reach GEO_OPT_CONVERGED (walltime cap or non-convergence) -- proceeding with the last available geometry anyway
+--- ridft_proper ---
+ridft_proper: 0 exit, 401s (node=node043, cores=16)
+--- bader ---
+bader: 0 exit, 15s (node=node043, cores=16)
+   67   26.138384   24.462993   29.864501   26.414265     1.508856   324.864406
+ --------------------------------------------------------------------------------
+    VACUUM CHARGE:               0.0000
+    VACUUM VOLUME:               0.0000
+    NUMBER OF ELECTRONS:       332.1722
+--- removing leftover $pointval from control ---
+--- ridft_tight ---
+ridft_tight: 0 exit, 0s (node=node043, cores=16)
+FATAL: ridft (tight) failed to converge, see ridft_tight.out

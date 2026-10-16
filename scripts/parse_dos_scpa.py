@@ -36,17 +36,28 @@ Usage:
 import argparse
 
 
-def parse_dos_curve(path, n_fragments):
+def parse_dos_curve(path, n_fragments, opdos=False, energy_au=False, scale=1.0):
+    """Fixed-width parse (Multiwfn glues columns when a value is negative,
+    e.g. ``29.468172-1019.275168``, so split() is unsafe). Layout: energy
+    (10 chars) + 12-char fields. With >=2 fragments defined, column 3 is the
+    OPDOS between fragments 1 and 2 (negative by nature, NOT a fragment):
+    pass opdos=True to skip it."""
+    HARTREE_TO_EV = 27.211386245988
     rows = []
+    skip = 1 if opdos else 0
     with open(path, "r") as f:
         for line in f:
-            parts = line.split()
-            if len(parts) < 2 + n_fragments:
+            line = line.rstrip("\n")
+            if len(line) < 22:
                 continue
-            energy_ev = float(parts[0])
-            tdos = float(parts[1])
-            fragments = [float(parts[2 + i]) for i in range(n_fragments)]
-            rows.append((energy_ev, tdos, fragments))
+            vals = [float(line[10 + i:22 + i]) for i in range(0, len(line) - 10, 12)
+                    if line[10 + i:22 + i].strip()]
+            if len(vals) < 1 + skip + n_fragments:
+                continue
+            energy = float(line[:10]) * (HARTREE_TO_EV if energy_au else 1.0)
+            tdos = vals[0] * scale
+            fragments = [v * scale for v in vals[1 + skip:1 + skip + n_fragments]]
+            rows.append((energy, tdos, fragments))
     if not rows:
         raise ValueError(f"No data rows parsed from {path}.")
     return rows
@@ -63,10 +74,19 @@ def main():
                               "pDOS_Cs pDOS_Cp pDOS_Os pDOS_Op pDOS_Hs pDOS_Hp, "
                               "or DOS_s DOS_p DOS_d)")
     parser.add_argument("--output", required=True)
+    parser.add_argument("--opdos", action="store_true",
+                        help="DOS_curve.txt has an OPDOS column after TDOS "
+                             "(any run with >=2 fragments defined): skip it.")
+    parser.add_argument("--energy-au", action="store_true",
+                        help="Energy column is in a.u. (convert to eV).")
+    parser.add_argument("--scale", type=float, default=1.0,
+                        help="Multiply DOS columns (10 matches the Becke "
+                             "parser convention, scale ratio 0.1).")
     args = parser.parse_args()
 
     n_fragments = len(args.labels)
-    rows = parse_dos_curve(args.curve, n_fragments)
+    rows = parse_dos_curve(args.curve, n_fragments, args.opdos,
+                           args.energy_au, args.scale)
     print(f"Parsed {len(rows)} points, {n_fragments} fragment(s) from {args.curve}")
 
     negative_counts = [0] * n_fragments

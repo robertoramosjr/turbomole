@@ -1,0 +1,19 @@
+=== qui set 10 19:19:24 -03 2026 starting pipeline in /home/rramos/work_turbomole/Cu-dupleto/pbe_m4_d3 (PARNODES=16) ===
+--- jobex ---
+jobex: 0 exit, 56007s (node=node019, cores=16)
+jobex: geometry converged
+--- ridft_proper ---
+ridft_proper: 0 exit, 6s (node=node019, cores=16)
+--- bader ---
+bader: 0 exit, 14s (node=node019, cores=16)
+   67   26.138384   24.462993   29.864501   26.414265     1.508856   324.864406
+ --------------------------------------------------------------------------------
+    VACUUM CHARGE:               0.0000
+    VACUUM VOLUME:               0.0000
+    NUMBER OF ELECTRONS:       332.1722
+--- restoring pre-proper control (drops the leftover $pointval grid block) ---
+--- ridft_tight ---
+ridft_tight: 0 exit, 209s (node=node019, cores=16)
+--- escf ---
+escf: 0 exit, 17186s (node=node019, cores=16)
+--- aoforce ---

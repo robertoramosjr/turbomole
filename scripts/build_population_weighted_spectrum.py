@@ -100,8 +100,11 @@ def parse_uvvis_states(escf_path):
             m = ESCF_ROW_RE.match(line)
             if not m:
                 continue
-            energy_eV = float(m.group(2))
-            osc_len = float(m.group(6))
+            # escf table columns: (1) state (2) Eh (3) eV (4) cm-1 (5) nm
+            # (6) Osc(vel) (7) Osc(len). Fixed 2026-09-25: this used (2) Hartree
+            # as "eV" and (6) the VELOCITY oscillator strength as "len".
+            energy_eV = float(m.group(3))
+            osc_len = float(m.group(7))
             states.append((energy_eV, osc_len))
     return states
 

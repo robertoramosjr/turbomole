@@ -1,0 +1,26 @@
+=== sáb set 26 20:31:36 -03 2026 resuming aoforce/dscf-proper in /home/rramos/work_turbomole/Zn-singleto/pbe_m4_d3 (PARNODES=16) ===
+--- aoforce ---
+aoforce: 0 exit, 48703s (node=node015, cores=16)
+ imaginary wave numbers indicate a negative curvature of the energy surface.
+--- dscf_proper ---
+dscf_proper: 0 exit, 128s (node=node015, cores=16)
+=== dom set 27 10:05:27 -03 2026 finished in /home/rramos/work_turbomole/Zn-singleto/pbe_m4_d3 ===
+stage         start_epoch  end_epoch   elapsed_seconds  exit_status
+jobex         1788304150   1788315465  11315            0
+ridft_proper  1788315465   1788315468  3                0
+bader         1788315468   1788315468  0                0
+ridft_tight   1788315468   1788315631  163              0
+escf          1788315631   1788315646  15               0
+aoforce       1788315646   1788315646  0                0
+dscf_proper   1788315646   1788315646  0                0
+jobex         1788909492   1788980355  70863            0
+ridft_proper  1788980355   1788980588  233              0
+bader         1788980588   1788980599  11               0
+ridft_tight   1788980599   1788980599  0                0
+jobex         1789077832   1789141196  63364            0
+ridft_proper  1789141196   1789141200  4                0
+bader         1789141200   1789141210  10               0
+ridft_tight   1789141210   1789141405  195              0
+escf          1789141405   1789148813  7408             0
+aoforce       1790465496   1790514199  48703            0
+dscf_proper   1790514199   1790514327  128              0

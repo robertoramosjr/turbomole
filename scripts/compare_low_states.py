@@ -29,6 +29,16 @@ DIPOLE OSCILLATOR STRENGTHS, and the per-state "N singlet a
 excitation" / "Dominant contributions" blocks) is identical between
 TD-DFT/RPA and BSE/TDA escf runs, so the same regexes cover both.
 
+Optional --reference "label:energy_eV" flags (repeatable) match each
+run's low states to a reference excitation by nearest energy -- e.g.
+distinguishing a dark n->pi* state from a bright pi->pi* one when
+oscillator strength alone can't be trusted (Kasha's rule violations,
+near-degenerate states). When two or more references are given, the
+energy separation between each matched pair is also printed -- this
+is the number that matters for e.g. picking a functional by how well
+it reproduces the gap between two known bands, not just either band
+alone.
+
 Usage:
     python ~/scripts/compare_low_states.py \
         --run hse06-tddft:artepillin_C_d3_hse06/escf_d3.out \
@@ -37,6 +47,16 @@ Usage:
         --run hse06-bse-tda:artepillin_C_d3_hse06_gwbse/escf_bse.out \
         --nstates 10 \
         --output low_states_comparison.csv
+
+    # with reference matching + band separation (e.g. azobenzene n->pi*/pi->pi*):
+    python ~/scripts/compare_low_states.py \
+        --run pbe0:azo_trans_pbe0_m4_d3/escf.out \
+        --run b3lyp:azo_trans_b3lyp_m4_d3/escf.out \
+        --run camb3lyp:azo_trans_camb3lyp_m4_d3/escf.out \
+        --run hse06:azo_trans_hse06_m4_d3/escf.out \
+        --nstates 10 \
+        --reference "n->pi*:2.82" --reference "pi->pi*:3.90" \
+        --output functional_benchmark_trans.csv
 """
 
 import argparse
@@ -116,6 +136,23 @@ def parse_dominant_transitions(escf_path):
     return transitions
 
 
+def parse_reference(entry):
+    label, value = entry.rsplit(":", 1)
+    return label, float(value)
+
+
+def match_references(low_states, references):
+    """Assigns each reference label to the low state with the closest
+    energy, independently per run (state ordering can shift between
+    functionals). Returns {index_in_low_states: (label, ref_eV)}."""
+    assignment = {}
+    for label, ref_eV in references:
+        closest_i = min(range(len(low_states)),
+                         key=lambda i: abs(low_states[i]["energy_eV"] - ref_eV))
+        assignment[closest_i] = (label, ref_eV)
+    return assignment
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Compare the N lowest excited states across multiple escf runs (TD-DFT and/or BSE/TDA).")
@@ -124,24 +161,46 @@ def main():
                          help="run label and path to its escf.out, e.g. hse06-bse-tda:path/escf_bse.out. Repeat.")
     parser.add_argument("--nstates", type=int, default=10,
                          help="number of lowest states to keep per run (default: 10)")
+    parser.add_argument("--reference", action="append", default=[],
+                         metavar="LABEL:ENERGY_EV",
+                         help="reference excitation to match by nearest energy, "
+                              "e.g. 'n->pi*:2.82'. Repeat. Enables band-separation "
+                              "reporting when 2+ are given.")
     parser.add_argument("--output", default="low_states_comparison.csv")
     args = parser.parse_args()
 
+    references = [parse_reference(r) for r in args.reference]
+
     fieldnames = ["run", "state", "energy_eV", "energy_nm", "osc_vel", "osc_len",
                   "occ_orbital", "occ_energy_eV", "virt_orbital", "virt_energy_eV",
-                  "orbital_gap_eV", "weight_pct", "binding_energy_eV"]
+                  "orbital_gap_eV", "weight_pct", "binding_energy_eV",
+                  "reference_label", "reference_eV", "reference_error_eV"]
 
     all_rows = []
     for entry in args.run:
         label, path = entry.split(":", 1)
         rows = parse_escf_table(path)
         transitions = parse_dominant_transitions(path)
-        for row in rows[:args.nstates]:
+        low_states = rows[:args.nstates]
+        assignment = match_references(low_states, references)
+
+        if len(assignment) >= 2:
+            matched = sorted(assignment.items(), key=lambda kv: kv[1][1])
+            for (i_lo, (lbl_lo, _)), (i_hi, (lbl_hi, _)) in zip(matched, matched[1:]):
+                separation = low_states[i_hi]["energy_eV"] - low_states[i_lo]["energy_eV"]
+                print(f"[{label}] band separation ({lbl_hi} - {lbl_lo}): {separation:.4f} eV")
+
+        for i, row in enumerate(low_states):
             merged = {"run": label, **row, **transitions.get(row["state"], {})}
             if "orbital_gap_eV" in merged:
                 # Exciton binding energy of the dominant occ->virt pair for
                 # this state: orbital_gap_eV - energy_eV (see docstring).
                 merged["binding_energy_eV"] = merged["orbital_gap_eV"] - merged["energy_eV"]
+            if i in assignment:
+                ref_label, ref_eV = assignment[i]
+                merged["reference_label"] = ref_label
+                merged["reference_eV"] = ref_eV
+                merged["reference_error_eV"] = merged["energy_eV"] - ref_eV
             all_rows.append(merged)
 
     with open(args.output, "w") as f:

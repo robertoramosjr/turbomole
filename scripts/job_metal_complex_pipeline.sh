@@ -10,7 +10,7 @@
 # Full pipeline_extracao_dft.md Estagio 1 (production), one SLURM array
 # task per directory listed in <joblist_file> (one path per line):
 #
-#   jobex (full geometry optimization, no cycle cap -- production
+#   jobex (full geometry optimization, -c 1500 cap -- production
 #          $statpt thresholds already baked into each control by
 #          setup_metal_complex_template.py)
 #   -> ridft -proper (density cube for Bader)
@@ -78,7 +78,7 @@ run_stage() {
 
 echo "=== $(date) starting pipeline in $WORK_DIR (PARNODES=$PARNODES) ==="
 
-run_stage "jobex" "jobex > jobex.out 2>&1"
+run_stage "jobex" "jobex -c 1500 > jobex.out 2>&1"
 jobex_status=$?
 if grep -qi "OPTIMIZATION DID NOT CONVERGE\|abnormally" jobex.out; then
     echo "WARNING: jobex reported non-convergence/abnormal exit, see jobex.out"
@@ -93,6 +93,15 @@ else
     echo "WARNING: jobex did not reach GEO_OPT_CONVERGED (walltime cap or non-convergence) -- proceeding with the last available geometry anyway"
 fi
 
+# Snapshot control before ridft -proper writes the full $pointval grid
+# block into it (grid1/grid2/grid3/origin etc, format not guaranteed
+# stable across Turbomole versions) -- restoring this snapshot after
+# bader is far more robust than pattern-matching that block away, which
+# previously deleted from $pointval to EOF (no matching "^origin" line)
+# and silently truncated control (lost $end), breaking every stage
+# after bader for all 3 pbe_m4_d3 runs on 2026-09-10.
+cp control control.pre_proper
+
 run_stage "ridft_proper" "ridft -proper > proper.out 2>&1"
 if grep -qi "ended abnormally" proper.out; then
     echo "FATAL: ridft -proper ended abnormally, see proper.out"
@@ -103,10 +112,8 @@ BADER_BIN=$(command -v bader || echo ~/local_bin/bader)
 run_stage "bader" "\"$BADER_BIN\" td.cub > bader_run.out 2>&1"
 tail -5 ACF.dat
 
-if grep -q '^\$pointval' control; then
-    echo "--- removing leftover \$pointval from control ---"
-    sed -i '/^\$pointval/,/^origin/d' control
-fi
+echo "--- restoring pre-proper control (drops the leftover \$pointval grid block) ---"
+mv control.pre_proper control
 
 run_stage "ridft_tight" "ridft > ridft_tight.out 2>&1"
 if grep -qi "ended abnormally\|did not converge" ridft_tight.out; then
@@ -124,6 +131,11 @@ if grep -qi "ended abnormally" aoforce.out; then
     echo "WARNING: aoforce ended abnormally, see aoforce.out"
 fi
 grep -i "imaginary" aoforce.out
+
+# dscf/ridft consomem $pop do control -- reinserir logo antes do dscf -proper
+if ! grep -q '^\$pop' control; then
+    sed -i '/^\$end/i \$pop mulliken loewdin nbo paboon' control
+fi
 
 run_stage "dscf_proper" "dscf -proper > pop.out 2>&1"
 if grep -qi "ended abnormally" pop.out; then

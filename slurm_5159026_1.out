@@ -1,0 +1,19 @@
+=== dom set 27 01:54:52 -03 2026 starting pipeline in /home/rramos/work_turbomole/Ni-singleto/hse06_m4_d3 (PARNODES=16) ===
+--- jobex ---
+jobex: 0 exit, 204797s (node=node051, cores=16)
+jobex: geometry converged
+--- ridft_proper ---
+ridft_proper: 0 exit, 245s (node=node051, cores=16)
+--- bader ---
+bader: 0 exit, 21s (node=node051, cores=16)
+   67   26.304719   25.506576   29.829762   25.534984     1.428114  1027.469241
+ --------------------------------------------------------------------------------
+    VACUUM CHARGE:               0.0000
+    VACUUM VOLUME:               0.0000
+    NUMBER OF ELECTRONS:       330.3884
+--- restoring pre-proper control (drops the leftover $pointval grid block) ---
+--- ridft_tight ---
+ridft_tight: 0 exit, 2652s (node=node051, cores=16)
+--- escf ---
+escf: 0 exit, 40415s (node=node051, cores=16)
+--- aoforce ---

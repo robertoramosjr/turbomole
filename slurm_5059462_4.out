@@ -1,0 +1,30 @@
+=== sex set  4 21:20:14 -03 2026 starting pipeline in /home/rramos/work_turbomole/Ni-singleto/hse06_m4_d3 (PARNODES=16) ===
+--- jobex ---
+jobex: 0 exit, 109907s (node=node043, cores=16)
+WARNING: jobex reported non-convergence/abnormal exit, see jobex.out
+WARNING: jobex did not reach GEO_OPT_CONVERGED (walltime cap or non-convergence) -- proceeding with the last available geometry anyway
+--- ridft_proper ---
+ridft_proper: 0 exit, 3s (node=node043, cores=16)
+--- bader ---
+bader: 0 exit, 0s (node=node043, cores=16)
+--- ridft_tight ---
+ridft_tight: 0 exit, 2363s (node=node043, cores=16)
+--- escf ---
+escf: 0 exit, 17s (node=node043, cores=16)
+WARNING: escf ended abnormally, see escf.out
+--- aoforce ---
+aoforce: 0 exit, 0s (node=node043, cores=16)
+WARNING: aoforce ended abnormally, see aoforce.out
+--- dscf_proper ---
+dscf_proper: 0 exit, 0s (node=node043, cores=16)
+WARNING: dscf -proper ended abnormally, see pop.out
+=== dom set  6 04:31:44 -03 2026 pipeline finished in /home/rramos/work_turbomole/Ni-singleto/hse06_m4_d3 ===
+--- timing summary (/home/rramos/work_turbomole/Ni-singleto/hse06_m4_d3) ---
+stage         start_epoch  end_epoch   elapsed_seconds  exit_status
+jobex         1788567614   1788677521  109907           0
+ridft_proper  1788677521   1788677524  3                0
+bader         1788677524   1788677524  0                0
+ridft_tight   1788677524   1788679887  2363             0
+escf          1788679887   1788679904  17               0
+aoforce       1788679904   1788679904  0                0
+dscf_proper   1788679904   1788679904  0                0

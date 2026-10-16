@@ -1,0 +1,44 @@
+=== qui set 10 19:03:52 -03 2026 starting pipeline in /home/rramos/work_turbomole/Ni-singleto/pbe_m4_d3 (PARNODES=16) ===
+--- jobex ---
+jobex: 0 exit, 39970s (node=node007, cores=16)
+jobex: geometry converged
+--- ridft_proper ---
+ridft_proper: 0 exit, 3s (node=node007, cores=16)
+--- bader ---
+bader: 0 exit, 17s (node=node007, cores=16)
+   67   26.210516   24.718423   30.029287   25.480568     1.453634   990.448560
+ --------------------------------------------------------------------------------
+    VACUUM CHARGE:               0.0000
+    VACUUM VOLUME:               0.0000
+    NUMBER OF ELECTRONS:       331.8804
+--- restoring pre-proper control (drops the leftover $pointval grid block) ---
+--- ridft_tight ---
+ridft_tight: 0 exit, 208s (node=node007, cores=16)
+--- escf ---
+escf: 0 exit, 6208s (node=node007, cores=16)
+--- aoforce ---
+aoforce: 0 exit, 172647s (node=node007, cores=16)
+ imaginary wave numbers indicate a negative curvature of the energy surface.
+--- dscf_proper ---
+dscf_proper: 0 exit, 8s (node=node007, cores=16)
+=== dom set 13 07:54:53 -03 2026 pipeline finished in /home/rramos/work_turbomole/Ni-singleto/pbe_m4_d3 ===
+--- timing summary (/home/rramos/work_turbomole/Ni-singleto/pbe_m4_d3) ---
+stage         start_epoch  end_epoch   elapsed_seconds  exit_status
+jobex         1788302553   1788314903  12350            0
+ridft_proper  1788314903   1788314907  4                0
+bader         1788314907   1788314907  0                0
+ridft_tight   1788314907   1788315101  194              0
+escf          1788315101   1788315116  15               0
+aoforce       1788315116   1788315116  0                0
+dscf_proper   1788315116   1788315116  0                0
+jobex         1788900022   1788967823  67801            0
+ridft_proper  1788967823   1788968037  214              0
+bader         1788968037   1788968056  19               0
+ridft_tight   1788968056   1788968056  0                0
+jobex         1789077832   1789117802  39970            0
+ridft_proper  1789117802   1789117805  3                0
+bader         1789117805   1789117822  17               0
+ridft_tight   1789117822   1789118030  208              0
+escf          1789118030   1789124238  6208             0
+aoforce       1789124238   1789296885  172647           0
+dscf_proper   1789296885   1789296893  8                0

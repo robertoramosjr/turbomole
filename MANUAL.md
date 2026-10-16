@@ -382,12 +382,18 @@ restrição de átomos por `cond`), e garante composições de fragmento
 sempre entre 0% e 100% — ao contrário do Mulliken cru, fonte
 documentada do artefato de sinal negativo (Estágio 1b).
 
-> **Nota:** o caminho exato do menu interativo do Multiwfn para SCPA
-> (equivalente ao `7 → 4` do Estágio 1b-alt2, mas escolhendo o método
-> `2`/SCPA e definindo fragmentos por elemento×momento angular) ainda
-> não está documentado passo a passo neste repositório — só o formato
-> de entrada/saída dos scripts abaixo. Documente aqui assim que
-> validado (ver também Multiwfn manual, Seção 2.4).
+**Menu validado (azobenzeno, 2026-10-16; Multiwfn 2026.9.20):** a partir de
+`molden_new.molden` (saída do Molden2AIM), script em stdin:
+`10` → `7` → `2` (SCPA) → `-1`; para cada fragmento `i`: `i`, `cond`,
+`<elemento>` (ex. `C`), `` (Enter = qualquer função), `<S|P|D|F>`, `q`;
+depois `e` (exporta `DOSfrag.txt`), `0`, `-3`, `2`, `<emin emax passo>` (a.u.),
+`3`, `0.005` (FWHM, a.u.), `0`, `3` (exporta `DOS_curve.txt`).
+Para def2-TZVP em C/N/H cabem exatamente 10 fragmentos: C-s/p/d/f, N-s/p/d/f,
+H-s/p. **Armadilha:** com ≥2 fragmentos o `DOS_curve.txt` tem uma coluna
+**OPDOS** (frag. 1×2, negativa por natureza) logo após o TDOS, e valores
+negativos colam colunas (`29.468172-1019.275168`): use
+`parse_dos_scpa.py --opdos --energy-au --scale 10` (leitura por largura fixa).
+Resultado: todos os fragmentos ≥ 0 e soma/TDOS = 1 ± 3e-5.
 
 Dois parsers, mesmo `DOS_curve.txt` de origem:
 
@@ -1000,7 +1006,13 @@ baixos de várias rodadas `escf.out` lado a lado (energia real
 *por estado*, calculado contra o par occ/virt dominante daquele
 estado, não necessariamente HOMO-LUMO; **não confundir** com o
 binding de `compute_exciton_binding.py`, que sempre usa o par
-HOMO/LUMO fixo):
+HOMO/LUMO fixo). `--reference "rótulo:energia_eV"` (repetível) casa
+cada estado à referência mais próxima em energia — útil quando a
+força de oscilador não ajuda a identificar o estado certo (ex.
+n→π* escuro do azobenzeno, que violaria a regra de Kasha se
+escolhido por intensidade) — e imprime a separação entre bandas
+quando há 2+ referências, além de gravar `reference_label`/
+`reference_eV`/`reference_error_eV` no CSV:
 
 ```bash
 python ../scripts/compare_low_states.py \

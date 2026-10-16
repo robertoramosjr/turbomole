@@ -1,0 +1,19 @@
+=== qui set 10 19:03:52 -03 2026 starting pipeline in /home/rramos/work_turbomole/Zn-singleto/pbe_m4_d3 (PARNODES=16) ===
+--- jobex ---
+jobex: 0 exit, 63364s (node=node037, cores=16)
+jobex: geometry converged
+--- ridft_proper ---
+ridft_proper: 0 exit, 4s (node=node037, cores=16)
+--- bader ---
+bader: 0 exit, 10s (node=node037, cores=16)
+   67   25.892166   23.743237   30.423061   27.022164     1.454866   229.852759
+ --------------------------------------------------------------------------------
+    VACUUM CHARGE:               0.0000
+    VACUUM VOLUME:               0.0000
+    NUMBER OF ELECTRONS:       333.2291
+--- restoring pre-proper control (drops the leftover $pointval grid block) ---
+--- ridft_tight ---
+ridft_tight: 0 exit, 195s (node=node037, cores=16)
+--- escf ---
+escf: 0 exit, 7408s (node=node037, cores=16)
+--- aoforce ---
