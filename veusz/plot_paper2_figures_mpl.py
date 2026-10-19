@@ -527,27 +527,36 @@ def fig07_exp_and_ph(root, out):
     style(ax, "Wavelength (nm)", "Normalised absorbance", (250, 400), (0, 1.1))
     place_legend(ax, loc="upper right", fontsize=9)
     letter(ax, "a")
-    # (b) band maximum and centroid vs pH from per-state spectra mixed by speciation
+    # (b) band maximum and centroid vs pH from per-state spectra mixed by speciation; the "COSMO-shifted" curve
+    # moves the N and A spectra rigidly by the vacuum->COSMO shift of their band maximum measured on the same
+    # conformers (anion_band_cosmo.py); B and D have no COSMO-TDDFT and stay in vacuum
+    from anion_band_cosmo import run as cosmo_shifts
     sp = whitespace_table(os.path.join(root, "speciation_v4_5refs.dat"))
     grid = np.linspace(2.0, 6.0, 1200)
     spec = {s: state_spectrum(root, s, grid)[0] for s in STATES}
+    lam_c = {(r["state"], r["medium"]): r["lambda_max_nm"] for r in cosmo_shifts(root, 0.4, 3.0, 4.96)}
+    dE = {s: HC / lam_c[(s, "cosmo")] - HC / lam_c[(s, "vacuum")] for s in ("N", "A")}
+    spec_c = {s: (np.interp(grid - dE[s], grid, spec[s]) if s in dE else spec[s]) for s in STATES}
     w = (grid >= 3.0) & (grid <= 5.5)
     phs = np.arange(1.0, 13.01, 0.25)
-    mx, cen = [], []
+    mx, mxc, cen = [], [], []
     for ph in phs:
         i = int(np.argmin(np.abs(sp["pH"] - ph)))
         prof = sum(sp[f"f_{s}"][i] * spec[s] for s in STATES)
+        profc = sum(sp[f"f_{s}"][i] * spec_c[s] for s in STATES)
         mx.append(HC / grid[w][np.argmax(prof[w])])
+        mxc.append(HC / grid[w][np.argmax(profc[w])])
         cen.append(HC / (np.sum(grid[w] * prof[w]) / np.sum(prof[w])))
     ax = add_ax_col(fig, 6.6, 4.2, H)
-    line(ax, phs, mx, color="#FF0000", lw=1.2, label="calc. maximum")
-    line(ax, phs, cen, color="#000000", lw=1.2, label="calc. centroid")
+    line(ax, phs, mx, color="#FF0000", lw=1.2, ls="--", label="calc. max., vacuum")
+    line(ax, phs, mxc, color="#FF0000", lw=1.2, label="calc. max., COSMO-shifted")
+    line(ax, phs, cen, color="#000000", lw=1.0, label="calc. centroid, vacuum")
     ax.plot(tit["pH"], tit["lambda_max_nm"], ls="none", marker="o", ms=3.2, mfc="white", mec="#000000",
             mew=0.8, label="exp. peak")
-    vt(ax, 4.65, 250, 330)
-    style(ax, "pH", "Band position (nm)", (1, 13), (250, 330))
+    vt(ax, 4.65, 250, 335)
+    style(ax, "pH", "Band position (nm)", (1, 13), (250, 425))  # headroom for the 4-entry legend (data end at 322 nm)
     note(ax, "exp. p$K_a$ 4.65", x=1.0, y=1.02, ha="right")
-    place_legend(ax, loc="upper right", fontsize=9)
+    ax.legend(loc="upper right", fontsize=9)
     letter(ax, "b")
     save(fig, "Fig07_uvvis_vs_experiment_and_pH", out)
 
