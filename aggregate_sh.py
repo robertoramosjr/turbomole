@@ -25,6 +25,14 @@ def wilson(k, n, z=1.96):
 
 
 def aggregate(rows, frm):
+    seen = set()
+    for r in rows:
+        t = r.get("traj")
+        if t is not None:
+            if t in seen:
+                raise ValueError(f"duplicate traj: {t}")
+            seen.add(t)
+    rows = [r for r in rows if r["status"] != "not_run"]
     ok = [r for r in rows if r["status"] == "hop_ok"]
     n_cis = sum(r["product"] == "cis" for r in ok)
     n_trans = sum(r["product"] == "trans" for r in ok)

@@ -27,6 +27,19 @@ def test_t3_died_s0():
     assert r["n_hops"] == 3
 
 
+def test_missing_dir_raises():                       # P05: caminho errado nao pode virar no_hop
+    try:
+        summarize(f"{B}/nao_existe/TRAJ1")
+        assert False, "should raise"
+    except FileNotFoundError:
+        pass
+
+
+def test_virgin_dir_not_run():                       # TRAJ7 do lote v2 nunca rodou (lote cancelado)
+    r = summarize(f"{B}/batch_trans425v2_gap0.2/TRAJ7")
+    assert r["status"] == "not_run" and r["product"] is None
+
+
 if __name__ == "__main__":  # sem pytest na access: executor mínimo
     fails = 0
     for name, fn in sorted(globals().items()):

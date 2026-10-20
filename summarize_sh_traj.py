@@ -3,7 +3,7 @@
 summarize_sh_traj.py
 
 Per-trajectory status of a native-TURBOMOLE surface-hopping run (phase 1 = S1 SH, phase 2 = S0 continuation).
-status: hop_ok | no_hop | died_S1 | died_S0.  product (cis|trans) only when status == hop_ok.
+status: hop_ok | no_hop | died_S1 | died_S0 | not_run (no jobex.out; nonexistent dir raises).  product (cis|trans) only when status == hop_ok.
 Reuses read()/dihedral() from classify_tm_md.py.
 
 Usage: python3 summarize_sh_traj.py <traj_dir> [...] [--csv out.csv] [--s0-dir DIR]
@@ -51,6 +51,8 @@ def _died_abnormally(jobex_out):
 
 def summarize(traj_dir, s0_dir=None):
     traj_dir = traj_dir.rstrip("/")
+    if not os.path.isdir(traj_dir):
+        raise FileNotFoundError(traj_dir)
     s0_dir = s0_dir or os.path.join(traj_dir, "s0")
     r = dict.fromkeys(COLS)
     r["traj"] = os.path.basename(traj_dir)
@@ -59,6 +61,9 @@ def summarize(traj_dir, s0_dir=None):
     r["t_end_s1_fs"] = f1[-1][0] if f1 else None
     hops = _hop_steps(os.path.join(traj_dir, "event.yaml"))
     r["n_hops"] = len(hops)
+    if not os.path.exists(os.path.join(traj_dir, "jobex.out")):
+        r["status"] = "not_run"
+        return r
     if not hops:
         r["status"] = "died_S1" if _died_abnormally(os.path.join(traj_dir, "jobex.out")) else "no_hop"
         return r

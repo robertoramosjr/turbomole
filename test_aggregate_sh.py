@@ -32,6 +32,22 @@ def test_no_hop_ok_gives_none_fraction():
     assert a["frac_switch"] is None and a["ci_low"] is None
 
 
+def test_duplicate_traj_raises():                    # Review Focus 5: CSV antigo + rerun do mesmo TRAJ
+    rows = [{"traj": "TRAJ7", "status": "died_S0", "product": None},
+            {"traj": "TRAJ7", "status": "hop_ok", "product": "trans"}]
+    try:
+        aggregate(rows, frm="cis")
+        assert False, "should raise"
+    except ValueError as e:
+        assert "duplicate traj: TRAJ7" in str(e)
+
+
+def test_not_run_excluded():
+    rows = [{"traj": "T1", "status": "hop_ok", "product": "trans"}, {"traj": "T2", "status": "not_run", "product": None}]
+    a = aggregate(rows, frm="cis")
+    assert a["n_total"] == 1 and a["n_hop_ok"] == 1
+
+
 if __name__ == "__main__":
     fails = 0
     for n, f in sorted(globals().items()):
