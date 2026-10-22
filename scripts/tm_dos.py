@@ -17,6 +17,53 @@ def run(cmd, stdin, log, env):
         subprocess.run(cmd, input=stdin, text=True, stdout=fh, stderr=subprocess.STDOUT, env=env, check=False)
 
 
+HARTREE_EV = 27.211386
+
+
+def uhf_levels(molden):
+    """Per-spin (energies_eV, occupations) from a Molden file, or None if closed shell."""
+    spins = {"alpha": ([], []), "beta": ([], [])}
+    cur = None
+    for l in open(molden):
+        t = l.split()
+        if l.lstrip().startswith("Ene="):
+            e = float(t[1]) * HARTREE_EV
+        elif l.lstrip().startswith("Spin="):
+            cur = t[1].lower()
+        elif l.lstrip().startswith("Occup=") and cur:
+            spins[cur][0].append(e)
+            spins[cur][1].append(float(t[1]))
+    if not spins["beta"][0]:
+        return None
+    return {k: (np.array(v[0]), np.array(v[1])) for k, v in spins.items()}
+
+
+def write_uhf(a, lv):
+    """Per-spin levels, HOMO/LUMO and Gaussian-broadened alpha/beta DOS (UHF)."""
+    grid = np.arange(a.emin, a.emax + a.estep / 2, a.estep)
+    sigma = a.fwhm / 2.3548200450309493
+    homo, lumo = {}, {}
+    total = np.zeros_like(grid)
+    for k, (e, occ) in lv.items():
+        order = np.argsort(e)
+        e, occ = e[order], occ[order]
+        np.savetxt(f"dos_levels_{k}.dat", e, fmt="%.5f", header=f"mo_energy_eV ascending, {k}")
+        nocc = int(round(occ.sum()))
+        homo[k], lumo[k] = e[nocc - 1], e[nocc]
+        dos = np.exp(-0.5 * ((grid[:, None] - e[None, :]) / sigma) ** 2).sum(axis=1)
+        total += dos
+        np.savetxt(f"dos_{k}.dat", np.c_[grid, dos], fmt="%.6g",
+                   header=f"energy_eV dos_{k}_arb (Gaussian FWHM={a.fwhm} eV, unit-height levels)")
+        print(f"{k}: nocc={nocc} HOMO={homo[k]:.3f} eV LUMO={lumo[k]:.3f} eV")
+    # Multiwfn's TDOS is unreliable for UHF molden: rebuild it, on its RHF scale (0.3133 per level; /2 so alpha+beta ~ one spatial set)
+    np.savetxt("dos_tdos.dat", np.c_[grid, 0.3133 * total / 2], fmt="%.6g",
+               header=f"energy_eV tdos_arb (Gaussian FWHM={a.fwhm} eV, (alpha+beta)/2 from Molden levels)")
+    h, l = max(homo.values()), min(lumo.values())
+    np.savetxt("dos_gap.dat", [[homo["alpha"], lumo["alpha"], homo["beta"], lumo["beta"], h, l, l - h]],
+               fmt="%.5f", header="homo_a lumo_a homo_b lumo_b homo_eV lumo_eV gap_eV (global = max HOMO, min LUMO)")
+    print(f"global HOMO={h:.3f} eV LUMO={l:.3f} eV gap={l - h:.3f} eV")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--mos", default="mos", help="TURBOMOLE MO file passed to tm2molden")
@@ -60,6 +107,11 @@ def main():
     lines = np.loadtxt("DOS_line.txt")
     levels = np.unique(np.round(lines[:, 0], 5))
     np.savetxt("dos_levels.dat", levels, fmt="%.5f", header="mo_energy_eV (ascending)")
+    if uhf_levels(a.molden) is not None:
+        write_uhf(a, uhf_levels(a.molden))
+        for f in ("DOS_curve.txt", "DOS_line.txt"):
+            Path(f).unlink()
+        return
     nocc = a.nocc
     if not nocc:
         for l in open("dos_multiwfn.log"):
