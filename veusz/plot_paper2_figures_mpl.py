@@ -15,7 +15,7 @@ Usage (veusz_env has matplotlib + numpy):
         --outdir ~/work_turbomole/artepillin_C_studies/paper_2/Figures/eps \
         [--only fig02 fig09 ...]
 
-Widths follow the revtex4-2 (aps) column of paper_2_v2.tex: 86 mm single column,
+Widths follow the revtex4-2 (aps) column of paper_2_v2.0.1.tex: 86 mm single column,
 178 mm double column. Layout coordinates are kept from the Veusz version
 (defined on a 180 mm page) and rescaled horizontally to 178 mm.
 """
@@ -196,7 +196,7 @@ def place_legend(ax, **kw):
 def save(fig, name, out):
     base = os.path.join(out, name)
     fig.savefig(base + ".eps", format="eps")
-    fig.savefig(base + ".pdf")  # pdflatex companion (paper_2_v2.tex includes PDF)
+    fig.savefig(base + ".pdf")  # pdflatex companion (paper_2_v2.0.1.tex includes PDF)
     fig.savefig(base + ".png", dpi=300)
     plt.close(fig)
     print("saved", base + ".eps")
