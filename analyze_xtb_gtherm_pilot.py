@@ -6,6 +6,7 @@ layer_b/freeh_thermal_correction.csv (g_thermal_correction_hartree).  Per state,
 relative to the state's lowest HSE06 value (kcal/mol) and compared: Pearson r, Spearman rho,
 MAE and max |error| of the xtb relative G against HSE06.  Acceptance (user rule, 2026-10-21):
 max |error| of the order of 0.3-0.5 kcal/mol or smaller.
+Conformers whose bhess.out reports a significant imaginary frequency are discarded (both variants).
 
 Usage:
   python analyze_xtb_gtherm_pilot.py --root ~/work_turbomole/artepillin_C_studies --out paper_2/Figures/data/xtb_gtherm_pilot.csv
@@ -28,6 +29,12 @@ def parse_g_rrho(path):
         return None
     m = G_RRHO.findall(open(path, errors="ignore").read())
     return float(m[-1]) if m else None
+
+
+def has_imaginary(root, state, job):
+    """True if xtb bhess found a significant imaginary frequency (not a stationary point: discarded)."""
+    path = os.path.join(root, "xtb_gtherm_pilot", state, job, "bhess.out")
+    return os.path.isfile(path) and "significant imaginary frequency" in open(path, errors="ignore").read()
 
 
 def relative_kcal(values):
@@ -65,7 +72,7 @@ def main():
         with open(os.path.join(root, f"artepillin_c_{state}_d3_hse06", "layer_b", "freeh_thermal_correction.csv")) as fh:
             hse = {r["job_dir"]: float(r["g_thermal_correction_hartree"]) for r in csv.DictReader(fh)}
         for variant in ("bhess", "hess"):
-            jobs = [j for j in hse if parse_g_rrho(os.path.join(root, "xtb_gtherm_pilot", state, j, f"{variant}.out")) is not None]
+            jobs = [j for j in hse if not has_imaginary(root, state, j) and parse_g_rrho(os.path.join(root, "xtb_gtherm_pilot", state, j, f"{variant}.out")) is not None]
             if len(jobs) < 2:
                 print(f"{state} {variant}: {len(jobs)} usable conformers, skipped")
                 continue
