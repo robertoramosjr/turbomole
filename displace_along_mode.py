@@ -15,16 +15,21 @@ import sys
 
 
 def read_modes(path, n_cart):
-    """Return {mode_index: [3N floats]} from a $vibrational normal modes file."""
+    """Return {mode_index: [3N floats]} from a $vibrational normal modes file.
+
+    File layout (TURBOMOLE): "<mode> <chunk> v1..v5" -- column 1 is the MODE number,
+    column 2 the chunk (5 Cartesian components per line, ceil(3N/5) lines per mode).
+    """
     modes = {}
     with open(path) as fh:
         for line in fh:
             parts = line.split()
             if line.startswith("$") or len(parts) < 3:
                 continue
-            block, row = int(parts[0]), int(parts[1])
+            mode, chunk = int(parts[0]), int(parts[1])
+            vec = modes.setdefault(mode, [0.0] * n_cart)
             for k, val in enumerate(parts[2:]):
-                modes.setdefault((block - 1) * 5 + k + 1, [0.0] * n_cart)[row - 1] = float(val.replace("D", "E"))
+                vec[(chunk - 1) * 5 + k] = float(val.replace("D", "E"))
     return modes
 
 
