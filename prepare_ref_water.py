@@ -14,6 +14,7 @@ Sub-commands (all light; run from the login node, the heavy steps are sbatch job
 Usage:
   python prepare_ref_water.py reopt --root ~/work_turbomole/artepillin_C_studies
   python prepare_ref_water.py w4    --root ~/work_turbomole/artepillin_C_studies
+  add  --only cinnamic_acid 4_coumaric_cooh  to restrict the step (and the joblists) to the new COOH references
 """
 import argparse
 import os
@@ -33,19 +34,33 @@ REFS = {
     "26_dimethylphenol": ("26_dimethylphenol", 0, -1),
     "4_hydroxybenzoate": ("4_hydroxybenzoate", -1, -2),
     "4_coumarate": ("4_coumarate", -1, -2),
+    # COOH-class references (0 -> -1) added for the v12 revision; pka_reference/4_coumaric_cooh/base is a symlink to
+    # the already finished 4_coumarate/acid species (same carboxylate + phenol-OH monoanion), so it is not recomputed.
+    "cinnamic_acid": ("cinnamic_acid", 0, -1),
+    "4_coumaric_cooh": ("4_coumaric_cooh", 0, -1),
 }
 
 
-def species(root):
+def species(root, only=None):
     for ref, (src, qa, qb) in REFS.items():
         for kind, q in (("acid", qa), ("base", qb)):
+            if only and ref not in only:
+                continue
             yield ref, kind, q, os.path.join(root, "pka_reference", src, kind), os.path.join(root, "ref_water", ref, kind)
+
+
+def sfx(a):
+    """Joblist suffix: '_new' when the step is restricted with --only (keeps the finished joblists untouched)."""
+    return "_new" if a.only else ""
 
 
 def cmd_reopt(a):
     root = os.path.abspath(os.path.expanduser(a.root))
     jobs = []
-    for ref, kind, q, src, dst in species(root):
+    for ref, kind, q, src, dst in species(root, set(a.only) if a.only else None):
+        if os.path.islink(os.path.join(root, "pka_reference", REFS[ref][0], kind)):
+            print("reusing finished species (symlink)", ref, kind)
+            continue
         if os.path.isfile(os.path.join(dst, "reopt", "control")):
             jobs.append(os.path.join(dst, "reopt"))
             continue
@@ -68,14 +83,16 @@ def cmd_reopt(a):
         shutil.copy(os.path.join(tmpl, "coord"), os.path.join(dst, "reopt", "coord"))
         print("reopt ready", ref, kind, "charge", q)
         jobs.append(os.path.join(dst, "reopt"))
-    open(os.path.join(root, "ref_water", "reopt_joblist.txt"), "w").write("\n".join(jobs) + "\n")
+    open(os.path.join(root, "ref_water", "reopt_joblist" + sfx(a) + ".txt"), "w").write("\n".join(jobs) + "\n")
 
 
 def cmd_w4(a):
     root = os.path.abspath(os.path.expanduser(a.root))
     w4, xt = [], []
-    for ref, kind, q, src, dst in species(root):
+    for ref, kind, q, src, dst in species(root, set(a.only) if a.only else None):
         ro = os.path.join(dst, "reopt")
+        if os.path.islink(os.path.join(root, "pka_reference", REFS[ref][0], kind)):
+            continue  # finished species reused through a symlink
         if not os.path.isfile(os.path.join(ro, "GEO_OPT_CONVERGED")):
             print("skip (not converged)", ref, kind)
             continue
@@ -92,8 +109,8 @@ def cmd_w4(a):
         open(os.path.join(x, "charge.txt"), "w").write(f"{q}\n")
         w4.append(d)
         xt.append(x)
-    open(os.path.join(root, "ref_water", "w4_joblist.txt"), "w").write("\n".join(w4) + "\n")
-    open(os.path.join(root, "ref_water", "xtb_joblist.txt"), "w").write("\n".join(xt) + "\n")
+    open(os.path.join(root, "ref_water", "w4_joblist" + sfx(a) + ".txt"), "w").write("\n".join(w4) + "\n")
+    open(os.path.join(root, "ref_water", "xtb_joblist" + sfx(a) + ".txt"), "w").write("\n".join(xt) + "\n")
     print(len(w4), "species prepared for W4/xtb")
 
 
@@ -101,6 +118,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("step", choices=("reopt", "w4"))
     ap.add_argument("--root", required=True)
+    ap.add_argument("--only", nargs="*", help="restrict to these reference names (default: all, as before)")
     a = ap.parse_args()
     {"reopt": cmd_reopt, "w4": cmd_w4}[a.step](a)
 

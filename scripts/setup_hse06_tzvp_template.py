@@ -62,6 +62,8 @@ def build_arg_parser():
                          help="DFT numerical integration grid size, as "
                               "passed to `grid <value>` in define's dft "
                               "menu (e.g. m3/m4/m5) [default: m4].")
+    parser.add_argument("--basis", default="def2-TZVP",
+                        help="orbital basis for `b all` (default def2-TZVP; e.g. def2-TZVPD)")
     parser.add_argument("--output-dir", required=True)
     return parser
 
@@ -89,7 +91,7 @@ def advance_to(child, patterns, max_steps=25, step_wait=3):
     raise RuntimeError(f"define: did not reach any of {patterns}")
 
 
-def run_define(work_dir, charge, grid, log_path):
+def run_define(work_dir, charge, grid, log_path, basis="def2-TZVP"):
     import pexpect
     child = pexpect.spawn("define", cwd=work_dir, timeout=20, encoding="utf-8")
     with open(log_path, "w") as logf:
@@ -104,7 +106,7 @@ def run_define(work_dir, charge, grid, log_path):
         send("a coord")
         send("*")
         send("no")
-        send("b all def2-TZVP", wait=2.0)
+        send(f"b all {basis}", wait=2.0)
         send("*", wait=1.0)
         send("eht")
         send("")
@@ -145,7 +147,7 @@ def main():
     )
 
     log_path = os.path.join(args.output_dir, "define_session.log")
-    run_define(args.output_dir, args.charge, args.grid, log_path)
+    run_define(args.output_dir, args.charge, args.grid, log_path, args.basis)
 
     control_path = os.path.join(args.output_dir, "control")
     if not os.path.isfile(control_path):
