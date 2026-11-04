@@ -42,3 +42,8 @@ Passo 1a em andamento (job 347). CP2K roda na access (decisão do usuário 2026-
 ## Estado 2026-11-04 (noite)
 - Passo 1 FECHADO: trans t4 é mínimo (curvatura +89 cm⁻¹, job 410); `aoforce` −23 = artefato analítico; NumForce = referência (freeh 429: G−E_el 96,86 kcal/mol). Falta só a causa raiz: job `430` (B3LYP aoforce, mesma geometria/grade).
 - Próximo: passo 2 (ligantes) com NumForce no lugar de aoforce para a hessiana/ZPE/Wigner; custo ao usuário antes do `sbatch`.
+
+## Registro 2026-11-04 (noite) — passo 2 submetido
+- Decisão do usuário: o −23 cm⁻¹ é problema do funcional (CAM-B3LYP); mantido por S1/S2; `430` (B3LYP aoforce) cancelado como redundante.
+- Pastas `azobenzeno/lig_{trans,cis}_{sh,nh2}` geradas por `scripts/azobenzeno/ligantes/setup_camb3lyp_opt.py`; jobs harpia `431-434` (`job_opt_numforce_freeh.sh`: jobex -ri -c 800 → ridft → rdgrad → NumForce → freeh σ default, escala 1,0). Custo estimado 80–100 núcleo-h/mol (não medido); conferir `sacct` ao fim.
+- Ao fim: `job.out` ALL_OK, `lowest_modes.txt`, `freeh/freeh.out`; depois 2c (Wigner a partir da Hessiana do NumForce).
