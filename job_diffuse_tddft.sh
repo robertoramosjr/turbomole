@@ -29,6 +29,7 @@ fi
 grep "Total energy + OC\|HOMO-LUMO" ridft.out | tail -2
 if [ ! -f ESCF_DONE ]; then
   escf > escf.out 2>&1
-  grep -q "escf : all done" escf.out && ! grep -qi "ended abnormally" escf.out && echo ESCF_DONE > ESCF_DONE
+  # escf prints "all done" even when the Davidson solver did not converge: also require no "No convergence" and an exspectrum file
+  grep -q "escf : all done" escf.out && ! grep -qi "ended abnormally\|No convergence" escf.out && [ -s exspectrum ] && echo ESCF_DONE > ESCF_DONE
 fi
 echo "diffuse TD-DFT $D escf_done=$([ -f ESCF_DONE ] && echo 1 || echo 0)"
