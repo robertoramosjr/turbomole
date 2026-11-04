@@ -33,3 +33,8 @@ Contexto: cis é mínimo verdadeiro (+20,5 cm⁻¹). Trans: modo imaginário −
 
 ## Estado
 Passo 1a em andamento (job 347). CP2K roda na access (decisão do usuário 2026-11-03); a harpia fica só com Turbomole. Repo de scripts clonado em `~/work_turbomole/scripts` (harpia); cofre: `02_Memory/turbomole/azobenzeno.md` (Pendente).
+
+## Registro 2026-11-04 — passo 1c lido (harpia 390–392) e teste `410`
+- NumForce (390): sem imaginária (24,45; 65,57; 85,17; 88,98 cm⁻¹); aoforce g7 (392) e statpt+aoforce (391): −23,3. O modo imaginário do aoforce é o modo 4 do NumForce (+89,0), overlap 0,97. Hipótese: artefato da 2ª derivada analítica (CAM-B3LYP); NumForce = referência para ZPE/G.
+- Termodinâmica NumForce (298,15 K, σ=1, RRHO próprio): ZPE 0,1928060 Eh, G−E_el 96,87 kcal/mol, G −572,5193464 Eh.
+- Teste: job `410` (`azo_trans_t4_curvA`, array 18) = ΔE e gradiente ao longo do modo A (±1,2,3 amu^½·bohr). Próximo: ler, ajustar ω², registrar; se confirmado, hessiana por NumForce nos passos 2 (ligantes) e Wigner.
