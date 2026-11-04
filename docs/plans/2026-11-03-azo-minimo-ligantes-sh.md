@@ -38,3 +38,7 @@ Passo 1a em andamento (job 347). CP2K roda na access (decisão do usuário 2026-
 - NumForce (390): sem imaginária (24,45; 65,57; 85,17; 88,98 cm⁻¹); aoforce g7 (392) e statpt+aoforce (391): −23,3. O modo imaginário do aoforce é o modo 4 do NumForce (+89,0), overlap 0,97. Hipótese: artefato da 2ª derivada analítica (CAM-B3LYP); NumForce = referência para ZPE/G.
 - Termodinâmica NumForce (298,15 K, σ=1, RRHO próprio): ZPE 0,1928060 Eh, G−E_el 96,87 kcal/mol, G −572,5193464 Eh.
 - Teste: job `410` (`azo_trans_t4_curvA`, array 18) = ΔE e gradiente ao longo do modo A (±1,2,3 amu^½·bohr). Próximo: ler, ajustar ω², registrar; se confirmado, hessiana por NumForce nos passos 2 (ligantes) e Wigner.
+
+## Estado 2026-11-04 (noite)
+- Passo 1 FECHADO: trans t4 é mínimo (curvatura +89 cm⁻¹, job 410); `aoforce` −23 = artefato analítico; NumForce = referência (freeh 429: G−E_el 96,86 kcal/mol). Falta só a causa raiz: job `430` (B3LYP aoforce, mesma geometria/grade).
+- Próximo: passo 2 (ligantes) com NumForce no lugar de aoforce para a hessiana/ZPE/Wigner; custo ao usuário antes do `sbatch`.
