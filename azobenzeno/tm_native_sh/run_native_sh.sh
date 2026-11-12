@@ -8,6 +8,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
 #SBATCH --array=0-9
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 ulimit -s unlimited
 read idx dir tm < <(awk -v i=$SLURM_ARRAY_TASK_ID '$1==i' $SLURM_SUBMIT_DIR/tasks.txt)
 if [ "$tm" = "801" ]; then export TURBODIR=$HOME/software/TURBOMOLE801; else export TURBODIR=$HOME/software/TURBOMOLE; fi

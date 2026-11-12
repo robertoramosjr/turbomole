@@ -7,6 +7,7 @@
 #SBATCH --cpus-per-task=48
 #SBATCH --exclusive
 #SBATCH -o slurm_mc_stab_%j.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Wavefunction stability tests (ridft from the converged MOs, then escf $scfinstab
 # singlet|triplet|urpa with $soes all 1), prepared by setup_stability_test.sh.

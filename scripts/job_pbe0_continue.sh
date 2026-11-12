@@ -6,6 +6,7 @@
 #SBATCH -o slurm_pbe0cont_%j.out
 #SBATCH -e slurm_pbe0cont_%j.error
 #SBATCH -J pbe0_continue
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Self-chaining continuation of a single pbe0_m4_d3 jobex that is too
 # expensive (RI-K) to finish geometry optimization within one 3-day

@@ -5,6 +5,7 @@
 #SBATCH --partition=short
 #SBATCH --mem=16G
 #SBATCH -o slurm_w2_sp_%A_%a.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 # Tier-2 single points; array index = chunk (1..NCHUNKS). Usage: sbatch --array=1-40%12 job_water_tier2_run.sh <state> <NCHUNKS>
 source /opt/gridunesp/dist/miniconda/24.4.0/libmamba/etc/profile.d/conda.sh; conda activate paper2_funnel
 ulimit -s unlimited

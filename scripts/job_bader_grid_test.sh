@@ -5,6 +5,7 @@
 #SBATCH --cpus-per-task=48
 #SBATCH --exclusive
 #SBATCH -o slurm_bader_grid_%j.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Bader cube-resolution convergence test: rebuild td.cub from converged MOs
 # (ridft -proper, no SCF) on a finer uniform grid and rerun bader.

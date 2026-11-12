@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J xtb_hess
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # xtb G_thermal (GFN2-xTB --hess, mRRHO at the input geometry; chosen over --bhess by the pilot, 2026-10-22).
 # Dirs from prepare_xtb_gtherm_w4.py (mol.xyz + charge.txt).  Validate by TEXT: "G(RRHO) contrib." in hess.out.

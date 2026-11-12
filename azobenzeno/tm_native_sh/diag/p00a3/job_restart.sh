@@ -5,6 +5,7 @@
 #SBATCH --partition=short
 #SBATCH --mem=32G
 #SBATCH -o /home/rramos/work_turbomole/azobenzeno/tm_native_sh/diag/p00a3/slurm_%A_%a.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 # P00a3: is the control truncation (p00a2) a property of the 256-snapshot or of the restart route (nextstep=ridft -> dscf-like step + egrad)?
 # Usage: sbatch --array=1-3 job_restart.sh
 #   1=young_ridft (127-frame traj, nextstep=ridft = same route as p00a2)

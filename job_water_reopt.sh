@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J w_reopt
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Re-optimises ONE tier-2 survivor (line SLURM_ARRAY_TASK_ID of <survivors file>) with r2SCAN-3c/def2-mTZVP + COSMO(water):
 # jobex -ri -c <cycles>. Resumable: an existing GEO_OPT_CONVERGED is skipped; a partial or capped (GEO_OPT_FAILED) run continues from its last geometry.

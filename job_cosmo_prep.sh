@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J cosmo_prep
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # COSMO(water) job-dir preparation for ONE labeled conformer, as a
 # SLURM array (cosmoprep is light on CPU but slow on wall time because

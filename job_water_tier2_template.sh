@@ -5,6 +5,7 @@
 #SBATCH --partition=short
 #SBATCH --mem=4G
 #SBATCH -o slurm_w2_template_%j.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 # Builds the four COSMO-ready r2SCAN-3c templates (neutral, monoanion_a from layer_a conformers via cosmoprep;
 # monoanion_b, dianion reuse the cosmo-prepped solv_relax_pilot dirs).
 source /opt/gridunesp/dist/miniconda/24.4.0/libmamba/etc/profile.d/conda.sh; conda activate paper2_funnel

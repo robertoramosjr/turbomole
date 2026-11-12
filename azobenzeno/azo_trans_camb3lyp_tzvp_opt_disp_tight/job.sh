@@ -8,6 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Test 2 (imaginary-mode diagnosis): same CAM-B3LYP-D3(BJ)/def2-TZVP + $senex, TM 8.0.1, but
 # standard grid 4 (manual l.3888: multiple grids not recommended for hybrids/response),

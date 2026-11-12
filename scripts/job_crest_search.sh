@@ -4,11 +4,10 @@
 #SBATCH -n 16
 #SBATCH --partition=short
 #SBATCH --mem=32G
-#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com
-#SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH -o crest_search.out
 #SBATCH -e crest_search.error
 #SBATCH -J crest_search
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Runs a CREST iMTD-GC / GFN2-xTB conformational search in a target
 # directory (a protonation-state seed folder containing 'coord' and

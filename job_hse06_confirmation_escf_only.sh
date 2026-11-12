@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J hse06_confirm
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # escf-only variant of job_hse06_labeling_retry2.sh, for B2's DFT
 # confirmation batch (protonation_and_conformer_investigation.md Sec.

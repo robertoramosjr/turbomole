@@ -7,6 +7,7 @@
 #SBATCH --cpus-per-task=48
 #SBATCH --exclusive
 #SBATCH -o slurm_mc_trio_%j.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Runs several metal-complex directories IN PARALLEL on ONE whole node
 # (coaraci allocates whole nodes, so Slurm arrays waste cores). Each

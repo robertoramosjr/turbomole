@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J cosmo_ridft
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Runs the COSMO(water) single-point ridft for one conformer, on top
 # of the already-converged (frozen) HSE06/def2-TZVP geometry --

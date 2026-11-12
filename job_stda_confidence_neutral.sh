@@ -7,6 +7,7 @@
 #SBATCH -o slurm_stda_confidence_neutral.out
 #SBATCH -e slurm_stda_confidence_neutral.error
 #SBATCH -J stda_confidence_neutral
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Runs characterize_stda_selection_confidence.py on the full 170-
 # conformer neutral Layer A ensemble (the only state with unlabeled

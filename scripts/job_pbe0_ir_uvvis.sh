@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J pbe0_ir_uvvis
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Layer A spectroscopy step: IR (aoforce) + UV-Vis (escf/TD-DFT) at
 # PBE0/def2-SVP (RI-J + RI-K) on r2SCAN-3c-optimized geometries.

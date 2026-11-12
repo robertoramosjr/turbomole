@@ -7,6 +7,7 @@
 #SBATCH -o crest_alpb.out
 #SBATCH -e crest_alpb.error
 #SBATCH -J crest_alpb
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # CREST iMTD-GC / GFN2-xTB with ALPB(water): builds the conformer ensemble IN SOLVENT, because the vacuum
 # ensembles were shown to be biased for the localised-charge anions (Fig. 12, protonation_and_conformer_investigation).

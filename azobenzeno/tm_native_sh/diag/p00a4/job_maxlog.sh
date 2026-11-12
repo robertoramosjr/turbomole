@@ -5,6 +5,7 @@
 #SBATCH --partition=short
 #SBATCH --mem=32G
 #SBATCH -o /home/rramos/work_turbomole/azobenzeno/tm_native_sh/diag/p00a4/slurm_%A_%a.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 # Usage: sbatch job_maxlog.sh
 set -u
 ulimit -s unlimited

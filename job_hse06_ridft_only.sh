@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J hse06_ridft
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # ridft-ONLY variant (no escf, no aoforce) -- just converges the
 # HSE06/def2-TZVP wavefunction on the frozen r2SCAN-3c geometry, the

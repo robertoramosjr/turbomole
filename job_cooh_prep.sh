@@ -5,6 +5,7 @@
 #SBATCH --mem=4G
 #SBATCH -J cooh_prep
 #SBATCH -o /home/rramos/work_turbomole/artepillin_C_studies/todo_v12/refs_cooh/slurm_prep_%j.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 # Light preparation step of the COOH-reference chain: prepare_ref_water.py <reopt|w4> restricted to the new references.
 # define/cosmoprep need the TURBOMOLE environment (same as job_ref_reopt.sh).  Usage: sbatch job_cooh_prep.sh <reopt|w4>
 set -eu

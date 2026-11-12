@@ -7,6 +7,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks=4
 #SBATCH --cpus-per-task=4
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Funcional-benchmark de estados excitados (rota B1, etapa 2): single-point
 # ridft + escf na geometria HSE06 ja convergida, so pra comparar TD-DFT entre

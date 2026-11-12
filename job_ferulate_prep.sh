@@ -5,6 +5,7 @@
 #SBATCH --partition=short
 #SBATCH --mem=4G
 #SBATCH -o slurm_ferul_prep_%j.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 source /opt/gridunesp/dist/miniconda/24.4.0/libmamba/etc/profile.d/conda.sh; conda activate paper2_funnel
 export TURBODIR=$HOME/software/TURBOMOLE; source $TURBODIR/Config_turbo_env
 export PATH=$TURBODIR/scripts:$TURBODIR/bin/$(sysname):$PATH

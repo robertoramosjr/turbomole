@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J diffuse_td
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # HSE06-D3(BJ)/def2-TZVPD + COSMO(water) ridft, then fast-response COSMO-TD-DFT escf (same keywords as the production
 # water_tddft runs, 30 roots).  Dirs from prepare_diffuse_test.py.  Resumable: ridft is skipped if RIDFT_DONE exists.

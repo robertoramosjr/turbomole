@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J pop_analysis
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Population-analysis step for B1 feature expansion: bond order/SEN
 # (dscf -proper, no $pointval -- fast) then a Bader density cube

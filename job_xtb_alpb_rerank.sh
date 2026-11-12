@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J xtb_alpb
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Re-optimizes every CREST conformer of one protonation state with
 # GFN2-xTB + ALPB(water) (the CREST ensembles were built in VACUUM --

@@ -5,6 +5,7 @@
 #SBATCH --mem=32G
 #SBATCH -J scf_chain
 #SBATCH -o slurm_scf_chain_%j.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 ulimit -s unlimited
 export TURBODIR=$HOME/software/TURBOMOLE; source $TURBODIR/Config_turbo_env
 export PARA_ARCH=SMP PARNODES=2 OMP_NUM_THREADS=2

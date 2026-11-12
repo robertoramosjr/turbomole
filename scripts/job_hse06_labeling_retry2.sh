@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J hse06_label_r2
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Second retry variant of job_hse06_labeling.sh: doubled core count
 # (8->16, nodes here have 56 cores, plenty of headroom) and explicit

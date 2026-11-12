@@ -7,6 +7,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH -t 12:00:00
 #SBATCH -o slurm_raman_egrad_%j.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Raman on GPU, TURBOMOLE analytic route: egrad ($scfinstab polly) -> intense.
 # Needs a COPY of a finished aoforce dir (hessian, vib_normal_modes, vibspectrum, mos...).

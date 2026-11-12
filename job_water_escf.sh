@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J water_escf
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # COSMO-TDDFT escf (HSE06-D3(BJ)/def2-TZVP, eps 78.4, fast response, 60 roots) on W4 geometries/orbitals.
 # Dirs from prepare_water_escf.py (converged COSMO ridft orbitals already in mos, so no ridft here).

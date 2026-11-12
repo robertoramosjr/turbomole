@@ -5,6 +5,7 @@
 #SBATCH --partition=short
 #SBATCH --mem=32G
 #SBATCH -o slurm_%A_%a.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # One native-TURBOMOLE surface-hopping trajectory, end to end:
 #   phase 1  S1 dynamics (jobex -ri -ex -md, frog $surface_hopping + $gap_threshold) until the forced/FSSH

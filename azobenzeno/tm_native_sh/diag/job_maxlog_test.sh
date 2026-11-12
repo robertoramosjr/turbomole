@@ -5,6 +5,7 @@
 #SBATCH --partition=short
 #SBATCH --mem=32G
 #SBATCH -o /home/rramos/work_turbomole/azobenzeno/tm_native_sh/diag/slurm_maxlog_%A.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 # Diagnostic (plan 2026-10-16, Task 2): does the S1 SH run die when the SH logs roll over at maxlog? Dir = $1
 set -u
 ulimit -s unlimited

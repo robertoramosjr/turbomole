@@ -6,6 +6,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J resume_force_pop
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Resumes ONLY the aoforce + dscf -proper tail of the metal-complex
 # pipeline, for directories where jobex/ridft-proper/bader/ridft_tight/

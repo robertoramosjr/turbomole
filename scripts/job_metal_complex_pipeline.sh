@@ -6,6 +6,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J metal_complex_pipeline
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Full pipeline_extracao_dft.md Estagio 1 (production), one SLURM array
 # task per directory listed in <joblist_file> (one path per line):

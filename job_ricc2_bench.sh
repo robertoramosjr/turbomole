@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J ricc2_bench
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # COSMO-ADC(2) and COSMO-CC2 (post-SCF reaction field, LR) vertical excitations on top of an HF/COSMO reference,
 # plus the same-basis HSE06 COSMO-TD-DFT in the sibling dir.  Dirs from prepare_ricc2_bench.py (hf/ and dft/).

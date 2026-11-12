@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J ref_reopt
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # r2SCAN-3c/def2-mTZVP + COSMO(water) re-optimisation of a pKa reference species (jobex -ri).
 # Dirs from prepare_ref_water.py reopt.  Resumable: GEO_OPT_FAILED is cleared and the run continues.

@@ -5,6 +5,7 @@
 #SBATCH --partition=short
 #SBATCH --mem=32G
 #SBATCH -o /home/rramos/work_turbomole/azobenzeno/tm_native_sh/diag/slurm_s0matrix_%A_%a.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 # Diagnostic (plan 2026-10-19, Task 3): S0 continuation variants. Usage: sbatch --array=1-13 job_s0_matrix.sh <tasks: "<dir> <ncycles> <omp78|serial78|omp801>">
 set -u
 ulimit -s unlimited

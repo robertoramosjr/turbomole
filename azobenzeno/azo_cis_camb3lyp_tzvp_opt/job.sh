@@ -8,6 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # CAM-B3LYP-D3(BJ)/def2-TZVP + $senex, TM 8.0.1 (plan sec. 12, item 2): jobex -c 800 ->
 # tight ridft -> escf (40 singlets, RPA) -> aoforce -> dscf -proper (population).

@@ -8,6 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Test 3: SAME as t2 but WITHOUT $senex/$esenex (analytic exact exchange, direct SCF size=0) and $denconv 1d-11. HSE06 (true minimum) had no senex; senex grid noise suspected for the soft CNNC mode.
 # standard grid 5 (manual l.3888: multiple grids not recommended for hybrids/response),

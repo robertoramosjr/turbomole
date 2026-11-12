@@ -8,6 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Test 1 (displace 0.4 bohr along imaginary mode 1 of tight run, C1, re-optimize). Based on test 2 setup: same CAM-B3LYP-D3(BJ)/def2-TZVP + $senex, TM 8.0.1, but
 # standard grid 4 (manual l.3888: multiple grids not recommended for hybrids/response),

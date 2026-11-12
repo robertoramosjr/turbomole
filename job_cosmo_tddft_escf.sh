@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J cosmo_tddft
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # COSMO-TDDFT, HSE06/def2-TZVP, eps 78.4, 60 roots on frozen r2SCAN-3c geometries (fast/nonequilibrium
 # response through the COSMO refractive index). Dirs prepared by paper_2/scripts/prepare_eps_cosmo_tddft.py;

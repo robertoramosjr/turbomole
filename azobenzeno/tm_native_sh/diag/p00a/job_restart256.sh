@@ -5,6 +5,7 @@
 #SBATCH --partition=short
 #SBATCH --mem=32G
 #SBATCH -o /home/rramos/work_turbomole/azobenzeno/tm_native_sh/diag/p00a/slurm_restart_%A_%a.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 # P00a test 1/2: restart from TRAJ2 snapshot at cycle 256. Ciclos limitados por $nsteps no mdmaster (4), NÃO por jobex -c.
 # Usage: sbatch --array=1-2 job_restart256.sh   (1=full, 2=pruned)
 set -u

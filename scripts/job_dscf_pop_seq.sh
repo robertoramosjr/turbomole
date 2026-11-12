@@ -6,6 +6,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH -t 02:00:00
 #SBATCH -o slurm_dscfpop_%j.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Sequential version of job_dscf_pop.sh for coaraci (no job arrays there):
 # runs `dscf -proper` (Mulliken/Loewdin/SEN population) on every directory of a

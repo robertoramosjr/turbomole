@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J relax_rdgrad
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # One HSE06/def2-TZVP gradient (rdgrad) at the FROZEN r2SCAN-3c geometry
 # of an already-converged labeled conformer, on a COPY (production

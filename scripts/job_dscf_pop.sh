@@ -6,6 +6,7 @@
 #SBATCH -o slurm_dscfpop_%A_%a.out
 #SBATCH -e slurm_dscfpop_%A_%a.error
 #SBATCH -J dscf_pop
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Refaz so o `dscf -proper` (populacao Mulliken/SEN) em dirs ja convergidos,
 # garantindo $pop no control antes (dscf/ridft o consomem).

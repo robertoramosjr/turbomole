@@ -7,6 +7,7 @@
 #SBATCH -o slurm_gfn2xtb_costretch.out
 #SBATCH -e slurm_gfn2xtb_costretch.error
 #SBATCH -J gfn2xtb_costretch
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Runs batch_gfn2xtb_co_stretch.py for all 4 protonation states'
 # labeled subsets -- the cheap-proxy half of B1's delta-learning data

@@ -5,6 +5,7 @@
 #SBATCH --partition=short
 #SBATCH --mem=32G
 #SBATCH -o /home/rramos/work_turbomole/azobenzeno/tm_native_sh/diag/slurm_s0v2_%A.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 # Diagnostic (plan 2026-10-16, Task 3): S0 continuation of t3/t9 with generator v2 (no stale $actual step). Dirs = "$@"
 set -u
 ulimit -s unlimited

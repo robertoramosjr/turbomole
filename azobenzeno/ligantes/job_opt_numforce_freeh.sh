@@ -8,6 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=40
 #SBATCH --mem=36000M
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 # CAM-B3LYP-D3(BJ)/def2-TZVP + $senex, TM 8.0.1 (harpia). Passo 2 do plano 2026-11-03:
 # jobex -ri -c 800 -> ridft -> rdgrad -> NumForce (Hessiana de referência; aoforce dá -23 cm-1 espúrio no trans,
 # ver cofre _log/azobenzeno 2026-11-04) -> freeh (escala 1.0, sigma default). Cada estágio validado por TEXTO;

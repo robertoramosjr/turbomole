@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J w4_sp
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # W4: HSE06/def2-TZVP + COSMO(water) single point (ridft) on one water-reoptimised geometry.
 # Dirs prepared by prepare_w4_sp.py.  Marker: "ridft : all done" in ridft.out; validate by TEXT, not exit code.

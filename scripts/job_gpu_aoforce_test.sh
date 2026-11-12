@@ -6,6 +6,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --gres=gpu:1
 #SBATCH -o slurm_gpu_test_%j.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # TURBOMOLE 8.0.1 GPU test on coaraci gpu-x.
 #  Part 1 (correctness): <small_dir> ridft + aoforce on CPU, GPU fp32, GPU fp64;

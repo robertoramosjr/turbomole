@@ -5,6 +5,7 @@
 #SBATCH --partition=short
 #SBATCH --mem=32G
 #SBATCH -o /home/rramos/work_turbomole/azobenzeno/tm_native_sh/diag/slurm_shlog_%A_%a.out
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 # Diagnostic (plan 2026-10-19, Task 2): do the SH log groups, pre-seeded with a small maxlog, roll over and truncate the control?
 # Usage: sbatch --array=1-3 job_shlog_test.sh <tasks: "<dir> <ncycles> <78|801>" per line>
 set -u

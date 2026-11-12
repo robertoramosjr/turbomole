@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J solv_relax
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Relaxes ONE conformer in implicit water: copies an r2SCAN-3c-optimised conformer directory
 # (control/basis/mos/coord), adds COSMO(eps=78.4) with cosmoprep (setup_cosmo_job.py, retried

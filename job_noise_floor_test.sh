@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J noise_floor
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Numerical-noise-floor test for B1's target frequency: re-runs
 # ridft+aoforce on an already-converged HSE06/def2-TZVP conformer with

@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J pka_refcmpd
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Full pKa reference-compound pipeline for ONE species directory built
 # by setup_hse06_opt_template.py (protonation_and_conformer_investigation.md

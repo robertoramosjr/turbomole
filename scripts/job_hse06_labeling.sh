@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J hse06_label
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Layer B labeling step: production-level (HSE06-D3(BJ)/def2-TZVP,
 # Paper 1 settings) IR (aoforce) + UV-Vis (escf, 60 singlet states) on

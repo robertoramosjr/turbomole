@@ -7,6 +7,7 @@
 #SBATCH -o slurm_%A_%a.out
 #SBATCH -e slurm_%A_%a.error
 #SBATCH -J r2scan3c_opt
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Layer A cheap-DFT refinement: runs one Turbomole jobex geometry
 # optimization (r2SCAN-3c/def2-mTZVP) per SLURM array task, on the

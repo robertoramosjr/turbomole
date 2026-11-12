@@ -8,6 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Pipeline completo (Estagio 1 do MANUAL.md em ~/work_turbomole/scripts),
 # para uma pasta recem-saida do define, com $optimize presente no control

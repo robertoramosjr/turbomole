@@ -7,6 +7,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 ulimit -s unlimited
 export TURBODIR=$HOME/software/TURBOMOLE
 export PATH=$TURBODIR/scripts:$PATH

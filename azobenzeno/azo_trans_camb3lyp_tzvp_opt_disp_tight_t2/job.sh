@@ -8,6 +8,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Test 2 (displace 0.4 bohr along imaginary mode 1 (-19.45) of t1, C1, re-optimize on standard grid 5, then aoforce).
 # standard grid 5 (manual l.3888: multiple grids not recommended for hybrids/response),

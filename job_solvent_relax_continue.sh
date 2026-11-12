@@ -6,6 +6,7 @@
 #SBATCH --mem=16G
 #SBATCH -o slurm_cont_%A_%a.out
 #SBATCH -J solv_relax_c
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 # Continues the r2SCAN-3c/COSMO relaxation of a conformer that hit the cycle cap (removes the failure flags and
 # runs jobex -ri for MAX more cycles). Usage: sbatch --array=1-N job_solvent_relax_continue.sh <joblist> [max_cycles]
 set -u

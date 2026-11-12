@@ -7,6 +7,7 @@
 #SBATCH -o slurm_raman_%A_%a.out
 #SBATCH -e slurm_raman_%A_%a.error
 #SBATCH -J raman_polly
+#SBATCH --mail-user=robeerto.aguiar.ramos@gmail.com --mail-type=ALL
 
 # Raman, analytic TURBOMOLE route on a COPY of a finished PBE0/def2-SVP aoforce dir (prepare_raman_jobs.py):
 # egrad ($scfinstab polly) -> intense -> raman_spectrum.dat. Resumable: a dir with raman_spectrum.dat is skipped.
