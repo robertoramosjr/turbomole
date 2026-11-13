@@ -20,5 +20,5 @@ export PATH=$TURBODIR/bin/$(sysname):$PATH
 cd "$DIR"
 grep -n -E "functional|xctype" control          # stale $xctype from copied controls changes the functional
 echo "node=$(hostname) threads=$OMP_NUM_THREADS mode=$MODE"
-if [ "$MODE" = opt ]; then jobex -riper -c 200 > jobex.out 2>&1; else riper > riper.out 2>&1; fi
+if [ "$MODE" = opt ]; then jobex -riper -c ${JOBEX_CYCLES:-800} > jobex.out 2>&1; else riper > riper.out 2>&1; fi
 grep -a -E "ENERGY|FREE ENERGY|converged|ended normally|ERROR" riper.out job.last 2>/dev/null | tail -8
