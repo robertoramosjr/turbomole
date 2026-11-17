@@ -5,7 +5,7 @@ Baseado em scripts/setup_hse06_tzvp_template.py (mesmo define automatizado), com
 cam-b3lyp, gridsize 5, sem bloco escf, $scfconv 10, $denconv 1d-10, $scfiterlimit 1500,
 $forceconv 7, $ricore 4000 e $statpt apertado do passo 1a (thrmaxgrad 2e-5: 1e-5 é piso de
 ruído da grade 5). Requer TURBODIR no ambiente (define no PATH) e pexpect.
-Uso: setup_camb3lyp_opt.py --coord anchored/trans_sh/coord --charge 0 --output-dir lig_trans_sh
+Uso: setup_camb3lyp_opt.py --coord anchored/trans_sh/coord --charge 0 --output-dir opt-lig-trans-sh_def2-tzvp_camb3lyp_OK
 """
 import argparse
 import os

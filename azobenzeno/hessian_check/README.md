@@ -3,7 +3,7 @@
 Contexto: o `aoforce` dá −23 cm⁻¹ para o trans-azobenzeno CAM-B3LYP/def2-TZVP, o `NumForce` não.
 Estes scripts documentam por que o NumForce é a referência (cofre `_log/azobenzeno.md` 2026-11-04).
 
-1. `compare_hessian_modes.py --a azo_trans_t4_grid7_aoforce --b azo_trans_t4_numforce` — o modo imaginário é
+1. `compare_hessian_modes.py --a _testes/freq-trans-t4-grid7_def2-tzvp_camb3lyp --b _testes/freq-trans-t4-numforce_def2-tzvp_camb3lyp` — o modo imaginário é
    o mesmo modo (overlap 0,97) que o NumForce dá com +89 cm⁻¹.
 2. `curvature_along_mode.py gen/analyze` — desloca só ao longo do modo; `actual -r; ridft; rdgrad` por caso
    (job array, 8 núcl., ~3 min/ponto); ΔE sobe nos dois sentidos e ω→+89 cm⁻¹ (k por gradientes).

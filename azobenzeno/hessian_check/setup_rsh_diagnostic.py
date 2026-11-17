@@ -7,7 +7,7 @@ ingredients combine with '+', e.g. w=0.10+nosenex, norij+nosenex (dscf ignores $
 Writes <outdir>/<case>/{control,coord,basis,auxbasis,mos,variant.txt} and <outdir>/cases.txt.
 
 Usage (from the study folder):
-  setup_rsh_diagnostic.py --base azo_trans_t4_grid6_aoforce --outdir rsh_diag --gridsize 5 \
+  setup_rsh_diagnostic.py --base _testes/freq-trans-t4-grid6_def2-tzvp_camb3lyp --outdir rsh_diag --gridsize 5 \
       --case nosenex:nosenex --case norij:norij --case w010:w=0.10+nosenex --case norij:norij+nosenex
 """
 import argparse
