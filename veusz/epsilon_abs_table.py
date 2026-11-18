@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Absolute epsilon (calc vs Camuri 2018 exp) for Paper 2, plan E1.
 
-eps_max = 1.3063e8 * max(sum_i pop_i f_i exp(-(E-E_i)^2/2s^2)) / (s * 8065.54)   [M-1 cm-1, s in eV]
+eps_max = 9.2370e7 * max(sum_i pop_i f_i exp(-(E-E_i)^2/2s^2)) / (s * 8065.54)   [M-1 cm-1, s in eV]
 Run with: LC_ALL=C ~/.conda/envs/veusz_env/bin/python scripts/epsilon_abs_table.py
 With --subdir eps_cosmo_tddft the same quantities are computed from the COSMO-TDDFT conformers (anion_band_cosmo.cosmo_jobs),
 alongside the vacuum HSE06 values of the SAME conformers/weights (like-for-like), and written to a separate CSV.
@@ -17,7 +17,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from plot_paper2_figures import HC, sticks, state_spectrum  # noqa: E402
 from anion_band_cosmo import cosmo_jobs  # noqa: E402
 
-K_EPS = 1.3063e8   # M-1 cm-1 * cm-1 per unit f (Gaussian std sigma)
+K_EPS = 9.2370e7   # M-1 cm-1 * cm-1 per unit f: (1/4.319e-9)/sqrt(2*pi), for exp(-x^2/2s^2) with s = std sigma
+#                    (was 1.3063e8 = (1/4.319e-9)/sqrt(pi), the exp(-x^2/s^2) convention -> eps overestimated by sqrt(2); fixed 2026-11-18)
 EV_CM = 8065.54    # cm-1 per eV
 SQ2PI = np.sqrt(2 * np.pi)
 EXP = {"N": ("s00", 0.61e4), "A": ("s23", 2.13e4)}

@@ -6,7 +6,7 @@ from plot_paper2_figures import HC
 def test_single_stick():
     g = np.linspace(2, 7, 5001)
     prof = np.exp(-((g - 4.0) ** 2) / (2 * 0.4 ** 2))  # f = 1 at 4 eV
-    assert abs(eps_from_profile(prof, g, 0.4, (3, 5.5)) - 4.05e4) < 0.01e4
+    assert abs(eps_from_profile(prof, g, 0.4, (3, 5.5)) - 2.863e4) < 0.01e4
 
 
 def test_fwhm_gaussian():
@@ -22,4 +22,4 @@ def test_subset_spectrum_weights(monkeypatch):
     monkeypatch.setattr(m, "sticks", lambda p: [(4.0, 1.0)])
     g = np.linspace(2, 7, 5001)
     prof = m.subset_spectrum(["a", "b"], [0.2, 0.6], g, 0.4)  # weights renormalised -> sum f = 1
-    assert abs(m.eps_from_profile(prof, g, 0.4, (3, 5.5)) - 4.05e4) < 0.01e4
+    assert abs(m.eps_from_profile(prof, g, 0.4, (3, 5.5)) - 2.863e4) < 0.01e4
